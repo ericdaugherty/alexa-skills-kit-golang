@@ -1,9 +1,5 @@
 package main
 
-//TODO Need to be main?  Breaks as helloworld
-
-import "C"
-
 import (
 	"errors"
 	"log"

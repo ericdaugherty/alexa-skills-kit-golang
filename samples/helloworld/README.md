@@ -11,7 +11,9 @@ First, create an Alexa Skill following the instructions described in the [Java H
 Second, compile the sample using the included Makefile
 
 ```
-make all
+docker pull eawsy/aws-lambda-go-shim:latest
+go get -u -d github.com/eawsy/aws-lambda-go-core/...
+go get -u github.com/ericdaugherty/alexa-skills-kit-golang
 ```
 
 Then, create a new Lambda function using the AWS CLI:
@@ -20,7 +22,7 @@ Then, create a new Lambda function using the AWS CLI:
 aws lambda create-function \
   --role arn:aws:iam::AWS_ACCOUNT_NUMBER:role/lambda_basic_execution \
   --function-name HelloWorld \
-  --zip-file fileb://package.zip \
+  --zip-file fileb://handler.zip \
   --runtime python2.7 \
   --handler handler.Handle
 ```

@@ -25,31 +25,51 @@
 # For more information, please refer to <http://unlicense.org/>
 #
 
-GOPATH ?= $(HOME)/go
 HANDLER ?= handler
-PACKAGE ?= package
+PACKAGE ?= $(HANDLER)
+GOPATH  ?= $(HOME)/go
 
-all:
-	@docker run --rm \
-		-v $(GOPATH):/go -v $(CURDIR):/tmp \
-		-e "HANDLER=$(HANDLER)" -e "PACKAGE=$(PACKAGE)" \
-		eawsy/aws-lambda-go-shim make _all
+WORKDIR = $(CURDIR:$(GOPATH)%=/go%)
+ifeq ($(WORKDIR),$(CURDIR))
+	WORKDIR = /tmp
+endif
 
-clean: _clean
+ROLE_ARN=`aws iam get-role --role-name lambda_basic_execution --query 'Role.Arn' --output text`
 
-push:
-	aws lambda update-function-code --function-name HelloWorld --zip-file fileb://package.zip
+docker:
+	@docker run --rm                                                             \
+	  -e HANDLER=$(HANDLER)                                                      \
+	  -e PACKAGE=$(PACKAGE)                                                      \
+	  -v $(GOPATH):/go                                                           \
+	  -v $(CURDIR):/tmp                                                          \
+	  -w $(WORKDIR)                                                              \
+	  eawsy/aws-lambda-go-shim:latest make all
 
-_all: _clean
-	@echo -ne "build..."\\r
+all: build pack perm
+
+build:
 	@go build -buildmode=plugin -ldflags='-w -s' -o $(HANDLER).so
-	@chown $(shell stat -c '%u:%g' .) $(HANDLER).so
-	@echo -ne "build, pack"\\r
-	@zip -q $(PACKAGE).zip $(HANDLER).so
-	@echo -ne "build, pack, inject"\\r
-	@cd /; mv /shim $(HANDLER); zip -q -r /tmp/$(PACKAGE).zip $(HANDLER)
-	@chown $(shell stat -c '%u:%g' .) $(PACKAGE).zip
-	@echo -ne "build, pack, inject, go!"\\n
 
-_clean:
-	@rm -rf $(PACKAGE).zip $(HANDLER).so
+pack:
+	@pack $(HANDLER) $(HANDLER).so $(PACKAGE).zip
+
+perm:
+	@chown $(shell stat -c '%u:%g' .) $(HANDLER).so $(PACKAGE).zip
+
+clean:
+	@rm -rf $(HANDLER) $(HANDLER).so $(PACKAGE).zip
+
+create:
+	@aws lambda create-function                                                  \
+	  --function-name HelloAlexa                                                 \
+	  --zip-file fileb://handler.zip                                             \
+	  --role $(ROLE_ARN)                                                         \
+	  --runtime python2.7                                                        \
+	  --handler handler.Handle
+
+update:
+	@aws lambda update-function-code                                             \
+	  --function-name HelloAlexa                                                 \
+	  --zip-file fileb://handler.zip
+
+.PHONY: docker all build pack perm clean create update

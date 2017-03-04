@@ -72,7 +72,7 @@ And more.  These methods handle initializing any required struts within the Resp
 
 ## samples
 
-[HelloWorld](https://github.com/ericaugherty/alexa-skills-kit-golang/samples/helloworld)
+[HelloWorld](https://github.com/ericdaugherty/alexa-skills-kit-golang/tree/master/samples/helloworld)
 
 ## Limitations
 

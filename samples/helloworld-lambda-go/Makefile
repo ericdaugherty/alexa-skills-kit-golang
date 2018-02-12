@@ -60,4 +60,8 @@ update:
 	  --function-name HelloAlexa                                                 \
 	  --zip-file fileb://handler.zip
 
-.PHONY: all build pack clean create update
+invoke:
+	@aws lambda invoke                                                           \
+	  --function-name HelloAlexa invoke.out
+
+.PHONY: all build pack clean create update invoke

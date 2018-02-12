@@ -29,6 +29,12 @@ Then, create a new Lambda function using the included Makefile:
 make create
 ```
 
+You can directry invoke lambda function(just invoke):
+
+```
+make invoke
+```
+
 You can now test the HelloAlexa skill via an Echo attached to your Amazon account or using the Amazon Alexa Console.
 
 Once the lambda function is created, you can use the Makefile to build and

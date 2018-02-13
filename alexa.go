@@ -57,12 +57,13 @@ type Session struct {
 
 // Request contines the data in the request within the main request.
 type Request struct {
-	Locale    string `json:"locale"`
-	Timestamp string `json:"timestamp"`
-	Type      string `json:"type"`
-	RequestID string `json:"requestId"`
-	Intent    Intent `json:"intent"`
-	Name      string `json:"name"`
+	Locale      string `json:"locale"`
+	Timestamp   string `json:"timestamp"`
+	Type        string `json:"type"`
+	RequestID   string `json:"requestId"`
+	DialogState string `json:"dialogState"`
+	Intent      Intent `json:"intent"`
+	Name        string `json:"name"`
 }
 
 // Intent contains the data about the Alexa Intent requested.

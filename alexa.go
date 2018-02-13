@@ -86,11 +86,11 @@ type ResponseEnvelope struct {
 
 // Response contains the body of the response.
 type Response struct {
-	OutputSpeech     *OutputSpeech `json:"outputSpeech,omitempty"`
-	Card             *Card         `json:"card,omitempty"`
-	Reprompt         *Reprompt     `json:"reprompt,omitempty"`
-	Directives       *[]Directive  `json:"directives,omitempty"`
-	ShouldSessionEnd bool          `json:"shouldEndSession"`
+	OutputSpeech     OutputSpeech `json:"outputSpeech,omitempty"`
+	Card             Card         `json:"card,omitempty"`
+	Reprompt         Reprompt     `json:"reprompt,omitempty"`
+	Directives       []Directive  `json:"directives,omitempty"`
+	ShouldSessionEnd bool         `json:"shouldEndSession"`
 }
 
 // OutputSpeech contains the data the defines what Alexa should say to the user.
@@ -117,16 +117,19 @@ type Image struct {
 
 // Reprompt contains data about whether Alexa should prompt the user for more data.
 type Reprompt struct {
-	OutputSpeech *OutputSpeech `json:"outputSpeech,omitempty"`
+	OutputSpeech OutputSpeech `json:"outputSpeech,omitempty"`
 }
 
 // Directive contains device level instructions on how to handle the response.
 type Directive struct {
-	Type         string `json:"type"`
-	PlayBehavior string `json:"playBehavior,omitempty"`
-	AudioItem    *struct {
-		Stream *Stream `json:"stream,omitempty"`
-	} `json:"audioItem,omitempty"`
+	Type         string    `json:"type"`
+	PlayBehavior string    `json:"playBehavior,omitempty"`
+	AudioItem    AudioItem `json:"audioItem,omitempty"`
+}
+
+// AudioItem contains an audio Stream definition for playback.
+type AudioItem struct {
+	Stream Stream `json:"stream,omitempty"`
 }
 
 // Stream contains instructions on playing an audio stream.
@@ -203,44 +206,54 @@ func (alexa *Alexa) SetTimestampTolerance(seconds int) {
 
 // SetSimpleCard creates a new simple card with the specified content.
 func (r *Response) SetSimpleCard(title string, content string) {
-	r.Card = &Card{Type: "Simple", Title: title, Content: content}
+	r.Card = Card{Type: "Simple", Title: title, Content: content}
 }
 
 // SetStandardCard creates a new standard card with the specified content.
 func (r *Response) SetStandardCard(title string, text string, smallImageURL string, largeImageURL string) {
-	r.Card = &Card{Type: "Standard", Title: title, Text: text}
+	r.Card = Card{Type: "Standard", Title: title, Text: text}
 	r.Card.Image = &Image{SmallImageURL: smallImageURL, LargeImageURL: largeImageURL}
 }
 
 // SetLinkAccountCard creates a new LinkAccount card.
 func (r *Response) SetLinkAccountCard() {
-	r.Card = &Card{Type: "LinkAccount"}
+	r.Card = Card{Type: "LinkAccount"}
 }
 
 // SetOutputText sets the OutputSpeech type to text and sets the value specified.
 func (r *Response) SetOutputText(text string) {
-	r.OutputSpeech = &OutputSpeech{Type: "PlainText", Text: text}
+	r.OutputSpeech = OutputSpeech{Type: "PlainText", Text: text}
 }
 
 // SetOutputSSML sets the OutputSpeech type to ssml and sets the value specified.
 func (r *Response) SetOutputSSML(ssml string) {
-	r.OutputSpeech = &OutputSpeech{Type: "SSML", SSML: ssml}
+	r.OutputSpeech = OutputSpeech{Type: "SSML", SSML: ssml}
 }
 
 // SetRepromptText created a Reprompt if needed and sets the OutputSpeech type to text and sets the value specified.
 func (r *Response) SetRepromptText(text string) {
-	if r.Reprompt == nil {
-		r.Reprompt = &Reprompt{}
-	}
-	r.Reprompt.OutputSpeech = &OutputSpeech{Type: "PlainText", Text: text}
+	r.Reprompt.OutputSpeech = OutputSpeech{Type: "PlainText", Text: text}
 }
 
 // SetRepromptSSML created a Reprompt if needed and sets the OutputSpeech type to ssml and sets the value specified.
 func (r *Response) SetRepromptSSML(ssml string) {
-	if r.Reprompt == nil {
-		r.Reprompt = &Reprompt{}
+	r.Reprompt.OutputSpeech = OutputSpeech{Type: "SSML", SSML: ssml}
+}
+
+// AddAudioPlayer adds an AudioPlayer directive to the Response.
+func (r *Response) AddAudioPlayer(playerType, playBehavior, streamToken, url string, offsetInMilliseconds int) {
+	d := Directive{
+		Type:         playerType,
+		PlayBehavior: playBehavior,
+		AudioItem: AudioItem{
+			Stream: Stream{
+				Token:                streamToken,
+				URL:                  url,
+				OffsetInMilliseconds: offsetInMilliseconds,
+			},
+		},
 	}
-	r.Reprompt.OutputSpeech = &OutputSpeech{Type: "SSML", SSML: ssml}
+	r.Directives = append(r.Directives, d)
 }
 
 // verifyApplicationId verifies that the ApplicationID sent in the request
@@ -249,13 +262,13 @@ func (alexa *Alexa) verifyApplicationID(request *RequestEnvelope) error {
 	appID := alexa.ApplicationID
 	requestAppID := request.Session.Application.ApplicationID
 	if appID == "" {
-		return errors.New("Application ID was set to an empty string.")
+		return errors.New("application ID was set to an empty string")
 	}
 	if requestAppID == "" {
-		return errors.New("Request Application ID was set to an empty string.")
+		return errors.New("request Application ID was set to an empty string")
 	}
 	if appID != requestAppID {
-		return errors.New("Request Application ID does not match expected ApplicationId")
+		return errors.New("request Application ID does not match expected ApplicationId")
 	}
 
 	return nil

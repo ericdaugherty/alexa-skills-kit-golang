@@ -57,7 +57,7 @@ const recipeIntentString = `{
   }
 }`
 
-// TestAlexaJSON Verifies taht the Alexa Struct parses an Alexa JSON String correctly.
+// TestAlexaJSON Verifies that the Alexa Struct parses an Alexa JSON String correctly.
 func TestAlexaJSON(t *testing.T) {
 	request := createRecipieRequest()
 
@@ -357,6 +357,35 @@ func TestCards(t *testing.T) {
 
 }
 
+func TestAudioPlayer(t *testing.T) {
+	request := createRecipieRequest()
+
+	audioPlayerHandler := &simpleAudioPlayerResponseHandler{Type: "Simple"}
+	alexa := getAlexaWithHandler(audioPlayerHandler)
+	responseEnv, err := alexa.ProcessRequest(request)
+	if err != nil {
+		t.Error("Error processing request. " + err.Error())
+	}
+	if len(responseEnv.Response.Directives) != 1 {
+		t.Fatalf("Response should contain 1 directive but contains %d", len(responseEnv.Response.Directives))
+	}
+	if responseEnv.Response.Directives[0].Type != "AudioPlayer.Play" {
+		t.Errorf("Type should be AudioPlayer.Play but was %s", responseEnv.Response.Directives[0].Type)
+	}
+	if responseEnv.Response.Directives[0].PlayBehavior != "REPLACE_ALL" {
+		t.Errorf("Type should be REPLACE_ALL but was %s", responseEnv.Response.Directives[0].PlayBehavior)
+	}
+	if responseEnv.Response.Directives[0].AudioItem.Stream.Token != "track2-long-audio" {
+		t.Errorf("Type should be track2-long-audio but was %s", responseEnv.Response.Directives[0].PlayBehavior)
+	}
+	if responseEnv.Response.Directives[0].AudioItem.Stream.URL != "https://my-audio-hosting-site.com/audio/sample-song-2.mp3" {
+		t.Errorf("Type should be https://my-audio-hosting-site.com/audio/sample-song-2.mp3 but was %s", responseEnv.Response.Directives[0].AudioItem.Stream.URL)
+	}
+	if responseEnv.Response.Directives[0].AudioItem.Stream.OffsetInMilliseconds != 100 {
+		t.Errorf("Type should be 100 but was %d", responseEnv.Response.Directives[0].AudioItem.Stream.OffsetInMilliseconds)
+	}
+}
+
 func getAlexa() *Alexa {
 	return &Alexa{ApplicationID: applicationID, RequestHandler: &emptyRequestHandler{}}
 }
@@ -491,5 +520,28 @@ func (h *simpleCardResponseHandler) OnIntent(request *Request, session *Session,
 }
 
 func (h *simpleCardResponseHandler) OnSessionEnded(*Request, *Session, *Response) error {
+	return nil
+}
+
+type simpleAudioPlayerResponseHandler struct {
+	Type string
+}
+
+func (h *simpleAudioPlayerResponseHandler) OnSessionStarted(*Request, *Session, *Response) error {
+	return nil
+}
+
+func (h *simpleAudioPlayerResponseHandler) OnLaunch(*Request, *Session, *Response) error {
+	return nil
+}
+
+func (h *simpleAudioPlayerResponseHandler) OnIntent(request *Request, session *Session, response *Response) error {
+
+	response.AddAudioPlayer("AudioPlayer.Play", "REPLACE_ALL", "track2-long-audio", "https://my-audio-hosting-site.com/audio/sample-song-2.mp3", 100)
+
+	return nil
+}
+
+func (h *simpleAudioPlayerResponseHandler) OnSessionEnded(*Request, *Session, *Response) error {
 	return nil
 }

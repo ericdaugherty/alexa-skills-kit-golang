@@ -369,20 +369,39 @@ func TestAudioPlayer(t *testing.T) {
 	if len(responseEnv.Response.Directives) != 1 {
 		t.Fatalf("Response should contain 1 directive but contains %d", len(responseEnv.Response.Directives))
 	}
-	if responseEnv.Response.Directives[0].Type != "AudioPlayer.Play" {
-		t.Errorf("Type should be AudioPlayer.Play but was %s", responseEnv.Response.Directives[0].Type)
+
+	exp := `{"type":"AudioPlayer.Play","playBehavior":"REPLACE_ALL","audioItem":{"stream":{"token":"track2-long-audio","url":"https://my-audio-hosting-site.com/audio/sample-song-2.mp3","offsetInMilliseconds":100}}}`
+
+	b, err := json.Marshal(responseEnv.Response.Directives[0])
+	if err != nil {
+		t.Fatalf("Error marshaling response. %s", err.Error())
 	}
-	if responseEnv.Response.Directives[0].PlayBehavior != "REPLACE_ALL" {
-		t.Errorf("Type should be REPLACE_ALL but was %s", responseEnv.Response.Directives[0].PlayBehavior)
+	if string(b) != exp {
+		t.Errorf("Expected JSON of "+exp+" but was %s", string(b))
 	}
-	if responseEnv.Response.Directives[0].AudioItem.Stream.Token != "track2-long-audio" {
-		t.Errorf("Type should be track2-long-audio but was %s", responseEnv.Response.Directives[0].PlayBehavior)
+}
+
+func TestDialogDirective(t *testing.T) {
+	request := createRecipieRequest()
+
+	simpleDialogDirectiveResponseHandler := &simpleDialogDirectiveResponseHandler{Type: "Simple"}
+	alexa := getAlexaWithHandler(simpleDialogDirectiveResponseHandler)
+	responseEnv, err := alexa.ProcessRequest(request)
+	if err != nil {
+		t.Error("Error processing request. " + err.Error())
 	}
-	if responseEnv.Response.Directives[0].AudioItem.Stream.URL != "https://my-audio-hosting-site.com/audio/sample-song-2.mp3" {
-		t.Errorf("Type should be https://my-audio-hosting-site.com/audio/sample-song-2.mp3 but was %s", responseEnv.Response.Directives[0].AudioItem.Stream.URL)
+	if len(responseEnv.Response.Directives) != 1 {
+		t.Fatalf("Response should contain 1 directive but contains %d", len(responseEnv.Response.Directives))
 	}
-	if responseEnv.Response.Directives[0].AudioItem.Stream.OffsetInMilliseconds != 100 {
-		t.Errorf("Type should be 100 but was %d", responseEnv.Response.Directives[0].AudioItem.Stream.OffsetInMilliseconds)
+
+	exp := `{"type":"Dialog.Delegate","updatedIntent":{"name":"PlanMyTrip","confirmationStatus":"NONE","slots":{"travelDate":{"name":"travelDate","confirmationStatus":"NONE","value":"2017-04-21"}}}}`
+
+	b, err := json.Marshal(responseEnv.Response.Directives[0])
+	if err != nil {
+		t.Fatalf("Error marshaling response. %s", err.Error())
+	}
+	if string(b) != exp {
+		t.Errorf("Expected JSON of "+exp+" but was %s", string(b))
 	}
 }
 
@@ -543,5 +562,39 @@ func (h *simpleAudioPlayerResponseHandler) OnIntent(request *Request, session *S
 }
 
 func (h *simpleAudioPlayerResponseHandler) OnSessionEnded(*Request, *Session, *Response) error {
+	return nil
+}
+
+type simpleDialogDirectiveResponseHandler struct {
+	Type string
+}
+
+func (h *simpleDialogDirectiveResponseHandler) OnSessionStarted(*Request, *Session, *Response) error {
+	return nil
+}
+
+func (h *simpleDialogDirectiveResponseHandler) OnLaunch(*Request, *Session, *Response) error {
+	return nil
+}
+
+func (h *simpleDialogDirectiveResponseHandler) OnIntent(request *Request, session *Session, response *Response) error {
+
+	i := Intent{
+		Name:               "PlanMyTrip",
+		ConfirmationStatus: "NONE",
+		Slots: map[string]IntentSlot{
+			"travelDate": IntentSlot{
+				Name:               "travelDate",
+				ConfirmationStatus: "NONE",
+				Value:              "2017-04-21",
+			},
+		},
+	}
+	response.AddDialogDirective("Dialog.Delegate", "", "", i)
+
+	return nil
+}
+
+func (h *simpleDialogDirectiveResponseHandler) OnSessionEnded(*Request, *Session, *Response) error {
 	return nil
 }

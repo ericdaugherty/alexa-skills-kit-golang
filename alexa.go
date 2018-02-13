@@ -67,14 +67,16 @@ type Request struct {
 
 // Intent contains the data about the Alexa Intent requested.
 type Intent struct {
-	Name  string                `json:"name"`
-	Slots map[string]IntentSlot `json:"slots"`
+	Name               string                `json:"name"`
+	ConfirmationStatus string                `json:"confirmationStatus,omitempty"`
+	Slots              map[string]IntentSlot `json:"slots"`
 }
 
 // IntentSlot contains the data for one Slot
 type IntentSlot struct {
-	Name  string `json:"name"`
-	Value string `json:"value"`
+	Name               string `json:"name"`
+	ConfirmationStatus string `json:"confirmationStatus,omitempty"`
+	Value              string `json:"value"`
 }
 
 // ResponseEnvelope contains the Response and additional attributes.
@@ -86,11 +88,11 @@ type ResponseEnvelope struct {
 
 // Response contains the body of the response.
 type Response struct {
-	OutputSpeech     OutputSpeech `json:"outputSpeech,omitempty"`
-	Card             Card         `json:"card,omitempty"`
-	Reprompt         Reprompt     `json:"reprompt,omitempty"`
-	Directives       []Directive  `json:"directives,omitempty"`
-	ShouldSessionEnd bool         `json:"shouldEndSession"`
+	OutputSpeech     OutputSpeech  `json:"outputSpeech,omitempty"`
+	Card             Card          `json:"card,omitempty"`
+	Reprompt         Reprompt      `json:"reprompt,omitempty"`
+	Directives       []interface{} `json:"directives,omitempty"`
+	ShouldSessionEnd bool          `json:"shouldEndSession"`
 }
 
 // OutputSpeech contains the data the defines what Alexa should say to the user.
@@ -120,8 +122,8 @@ type Reprompt struct {
 	OutputSpeech OutputSpeech `json:"outputSpeech,omitempty"`
 }
 
-// Directive contains device level instructions on how to handle the response.
-type Directive struct {
+// AudioPlayerDirective contains device level instructions on how to handle the response.
+type AudioPlayerDirective struct {
 	Type         string    `json:"type"`
 	PlayBehavior string    `json:"playBehavior,omitempty"`
 	AudioItem    AudioItem `json:"audioItem,omitempty"`
@@ -137,6 +139,14 @@ type Stream struct {
 	Token                string `json:"token"`
 	URL                  string `json:"url"`
 	OffsetInMilliseconds int    `json:"offsetInMilliseconds"`
+}
+
+// DialogDirective contains directives for use in Dialog prompts.
+type DialogDirective struct {
+	Type          string `json:"type"`
+	SlotToElicit  string `json:"slotToElicit,omitempty"`
+	SlotToConfirm string `json:"slotToConfirm,omitempty"`
+	UpdatedIntent Intent `json:"updatedIntent"`
 }
 
 // ProcessRequest handles a request passed from Alexa
@@ -242,7 +252,7 @@ func (r *Response) SetRepromptSSML(ssml string) {
 
 // AddAudioPlayer adds an AudioPlayer directive to the Response.
 func (r *Response) AddAudioPlayer(playerType, playBehavior, streamToken, url string, offsetInMilliseconds int) {
-	d := Directive{
+	d := AudioPlayerDirective{
 		Type:         playerType,
 		PlayBehavior: playBehavior,
 		AudioItem: AudioItem{
@@ -252,6 +262,17 @@ func (r *Response) AddAudioPlayer(playerType, playBehavior, streamToken, url str
 				OffsetInMilliseconds: offsetInMilliseconds,
 			},
 		},
+	}
+	r.Directives = append(r.Directives, d)
+}
+
+// AddDialogDirective adds a Dialog directive to the Response.
+func (r *Response) AddDialogDirective(dialogType, slotToElicit, slotToConfirm string, intent Intent) {
+	d := DialogDirective{
+		Type:          dialogType,
+		SlotToElicit:  slotToElicit,
+		SlotToConfirm: slotToConfirm,
+		UpdatedIntent: intent,
 	}
 	r.Directives = append(r.Directives, d)
 }

@@ -381,7 +381,7 @@ func TestAudioPlayer(t *testing.T) {
 	}
 }
 
-func TestDialogDirective(t *testing.T) {
+func TestSimpleDialogDirective(t *testing.T) {
 	request := createRecipieRequest()
 
 	simpleDialogDirectiveResponseHandler := &simpleDialogDirectiveResponseHandler{Type: "Simple"}
@@ -395,6 +395,30 @@ func TestDialogDirective(t *testing.T) {
 	}
 
 	exp := `{"type":"Dialog.Delegate","updatedIntent":{"name":"PlanMyTrip","confirmationStatus":"NONE","slots":{"travelDate":{"name":"travelDate","confirmationStatus":"NONE","value":"2017-04-21"}}}}`
+
+	b, err := json.Marshal(responseEnv.Response.Directives[0])
+	if err != nil {
+		t.Fatalf("Error marshaling response. %s", err.Error())
+	}
+	if string(b) != exp {
+		t.Errorf("Expected JSON of "+exp+" but was %s", string(b))
+	}
+}
+
+func TestNoIntentDialogDirective(t *testing.T) {
+	request := createRecipieRequest()
+
+	simpleDialogDirectiveResponseHandler := &simpleDialogDirectiveResponseHandler{Type: "NoIntent"}
+	alexa := getAlexaWithHandler(simpleDialogDirectiveResponseHandler)
+	responseEnv, err := alexa.ProcessRequest(request)
+	if err != nil {
+		t.Error("Error processing request. " + err.Error())
+	}
+	if len(responseEnv.Response.Directives) != 1 {
+		t.Fatalf("Response should contain 1 directive but contains %d", len(responseEnv.Response.Directives))
+	}
+
+	exp := `{"type":"Dialog.Delegate"}`
 
 	b, err := json.Marshal(responseEnv.Response.Directives[0])
 	if err != nil {
@@ -579,18 +603,23 @@ func (h *simpleDialogDirectiveResponseHandler) OnLaunch(*Request, *Session, *Res
 
 func (h *simpleDialogDirectiveResponseHandler) OnIntent(request *Request, session *Session, response *Response) error {
 
-	i := Intent{
-		Name:               "PlanMyTrip",
-		ConfirmationStatus: "NONE",
-		Slots: map[string]IntentSlot{
-			"travelDate": IntentSlot{
-				Name:               "travelDate",
-				ConfirmationStatus: "NONE",
-				Value:              "2017-04-21",
+	switch h.Type {
+	case "Simple":
+		i := &Intent{
+			Name:               "PlanMyTrip",
+			ConfirmationStatus: "NONE",
+			Slots: map[string]IntentSlot{
+				"travelDate": IntentSlot{
+					Name:               "travelDate",
+					ConfirmationStatus: "NONE",
+					Value:              "2017-04-21",
+				},
 			},
-		},
+		}
+		response.AddDialogDirective("Dialog.Delegate", "", "", i)
+	case "NoIntent":
+		response.AddDialogDirective("Dialog.Delegate", "", "", nil)
 	}
-	response.AddDialogDirective("Dialog.Delegate", "", "", i)
 
 	return nil
 }

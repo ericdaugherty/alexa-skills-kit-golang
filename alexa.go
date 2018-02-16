@@ -89,9 +89,9 @@ type ResponseEnvelope struct {
 
 // Response contains the body of the response.
 type Response struct {
-	OutputSpeech     OutputSpeech  `json:"outputSpeech,omitempty"`
-	Card             Card          `json:"card,omitempty"`
-	Reprompt         Reprompt      `json:"reprompt,omitempty"`
+	OutputSpeech     *OutputSpeech `json:"outputSpeech,omitempty"`
+	Card             *Card         `json:"card,omitempty"`
+	Reprompt         *Reprompt     `json:"reprompt,omitempty"`
 	Directives       []interface{} `json:"directives,omitempty"`
 	ShouldSessionEnd bool          `json:"shouldEndSession"`
 }
@@ -120,14 +120,14 @@ type Image struct {
 
 // Reprompt contains data about whether Alexa should prompt the user for more data.
 type Reprompt struct {
-	OutputSpeech OutputSpeech `json:"outputSpeech,omitempty"`
+	OutputSpeech *OutputSpeech `json:"outputSpeech,omitempty"`
 }
 
 // AudioPlayerDirective contains device level instructions on how to handle the response.
 type AudioPlayerDirective struct {
-	Type         string    `json:"type"`
-	PlayBehavior string    `json:"playBehavior,omitempty"`
-	AudioItem    AudioItem `json:"audioItem,omitempty"`
+	Type         string     `json:"type"`
+	PlayBehavior string     `json:"playBehavior,omitempty"`
+	AudioItem    *AudioItem `json:"audioItem,omitempty"`
 }
 
 // AudioItem contains an audio Stream definition for playback.
@@ -217,38 +217,44 @@ func (alexa *Alexa) SetTimestampTolerance(seconds int) {
 
 // SetSimpleCard creates a new simple card with the specified content.
 func (r *Response) SetSimpleCard(title string, content string) {
-	r.Card = Card{Type: "Simple", Title: title, Content: content}
+	r.Card = &Card{Type: "Simple", Title: title, Content: content}
 }
 
 // SetStandardCard creates a new standard card with the specified content.
 func (r *Response) SetStandardCard(title string, text string, smallImageURL string, largeImageURL string) {
-	r.Card = Card{Type: "Standard", Title: title, Text: text}
+	r.Card = &Card{Type: "Standard", Title: title, Text: text}
 	r.Card.Image = &Image{SmallImageURL: smallImageURL, LargeImageURL: largeImageURL}
 }
 
 // SetLinkAccountCard creates a new LinkAccount card.
 func (r *Response) SetLinkAccountCard() {
-	r.Card = Card{Type: "LinkAccount"}
+	r.Card = &Card{Type: "LinkAccount"}
 }
 
 // SetOutputText sets the OutputSpeech type to text and sets the value specified.
 func (r *Response) SetOutputText(text string) {
-	r.OutputSpeech = OutputSpeech{Type: "PlainText", Text: text}
+	r.OutputSpeech = &OutputSpeech{Type: "PlainText", Text: text}
 }
 
 // SetOutputSSML sets the OutputSpeech type to ssml and sets the value specified.
 func (r *Response) SetOutputSSML(ssml string) {
-	r.OutputSpeech = OutputSpeech{Type: "SSML", SSML: ssml}
+	r.OutputSpeech = &OutputSpeech{Type: "SSML", SSML: ssml}
 }
 
 // SetRepromptText created a Reprompt if needed and sets the OutputSpeech type to text and sets the value specified.
 func (r *Response) SetRepromptText(text string) {
-	r.Reprompt.OutputSpeech = OutputSpeech{Type: "PlainText", Text: text}
+	if r.Reprompt == nil {
+		r.Reprompt = &Reprompt{}
+	}
+	r.Reprompt.OutputSpeech = &OutputSpeech{Type: "PlainText", Text: text}
 }
 
 // SetRepromptSSML created a Reprompt if needed and sets the OutputSpeech type to ssml and sets the value specified.
 func (r *Response) SetRepromptSSML(ssml string) {
-	r.Reprompt.OutputSpeech = OutputSpeech{Type: "SSML", SSML: ssml}
+	if r.Reprompt == nil {
+		r.Reprompt = &Reprompt{}
+	}
+	r.Reprompt.OutputSpeech = &OutputSpeech{Type: "SSML", SSML: ssml}
 }
 
 // AddAudioPlayer adds an AudioPlayer directive to the Response.
@@ -256,7 +262,7 @@ func (r *Response) AddAudioPlayer(playerType, playBehavior, streamToken, url str
 	d := AudioPlayerDirective{
 		Type:         playerType,
 		PlayBehavior: playBehavior,
-		AudioItem: AudioItem{
+		AudioItem: &AudioItem{
 			Stream: Stream{
 				Token:                streamToken,
 				URL:                  url,

@@ -1,0 +1,29 @@
+{
+  "manifest": {
+    "publishingInformation": {
+      "locales": {
+        "en-US": {
+          "summary": "Hello World Sample Skill",
+          "examplePhrases": [
+            "Alexa open hello world",
+            "Alexa ask hello world to say hi"
+          ],
+          "name": "HelloWorld",
+          "description": "Hello World Sample Skill"
+        }
+      },
+      "isAvailableWorldwide": true,
+      "testingInstructions": "Sample Testing Instructions.",
+      "category": "EDUCATION_AND_REFERENCE",
+      "distributionCountries": []
+    },
+    "apis": {
+      "custom": {
+        "endpoint": {
+          "uri": "arn:aws:lambda:TBD"
+        }
+      }
+    },
+    "manifestVersion": "1.0"
+  }
+}

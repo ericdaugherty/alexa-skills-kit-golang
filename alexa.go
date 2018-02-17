@@ -17,9 +17,10 @@ var timestampTolerance = 150
 
 // Alexa defines the primary interface to use to create an Alexa request handler.
 type Alexa struct {
-	ApplicationID   string
-	RequestHandler  RequestHandler
-	IgnoreTimestamp bool
+	ApplicationID       string
+	RequestHandler      RequestHandler
+	IgnoreApplicationID bool
+	IgnoreTimestamp     bool
 }
 
 // RequestHandler defines the interface that must be implemented to handle
@@ -153,12 +154,14 @@ type DialogDirective struct {
 // ProcessRequest handles a request passed from Alexa
 func (alexa *Alexa) ProcessRequest(requestEnv *RequestEnvelope) (*ResponseEnvelope, error) {
 
-	err := alexa.verifyApplicationID(requestEnv)
-	if err != nil {
-		return nil, err
+	if !alexa.IgnoreApplicationID {
+		err := alexa.verifyApplicationID(requestEnv)
+		if err != nil {
+			return nil, err
+		}
 	}
 	if !alexa.IgnoreTimestamp {
-		err = alexa.verifyTimestamp(requestEnv)
+		err := alexa.verifyTimestamp(requestEnv)
 		if err != nil {
 			return nil, err
 		}

@@ -1,14 +1,15 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"log"
 
-	"github.com/eawsy/aws-lambda-go-core/service/lambda/runtime"
+	"github.com/aws/aws-lambda-go/lambda"
 	alexa "github.com/ericdaugherty/alexa-skills-kit-golang"
 )
 
-var a = &alexa.Alexa{ApplicationID: "amzn1.ask.skill.08857461-c080-49d6-8646-2f0ca2c14914", RequestHandler: &HelloWorld{}, IgnoreTimestamp: true}
+var a = &alexa.Alexa{ApplicationID: "amzn1.ask.skill.<SKILL_ID>", RequestHandler: &HelloWorld{}, IgnoreApplicationID: true, IgnoreTimestamp: true}
 
 const cardTitle = "HelloWorld"
 
@@ -16,7 +17,7 @@ const cardTitle = "HelloWorld"
 type HelloWorld struct{}
 
 // Handle processes calls from Lambda
-func Handle(requestEnv *alexa.RequestEnvelope, ctx *runtime.Context) (interface{}, error) {
+func Handle(ctx context.Context, requestEnv *alexa.RequestEnvelope) (interface{}, error) {
 	return a.ProcessRequest(requestEnv)
 }
 
@@ -77,4 +78,8 @@ func (h *HelloWorld) OnSessionEnded(request *alexa.Request, session *alexa.Sessi
 	log.Printf("OnSessionEnded requestId=%s, sessionId=%s", request.RequestID, session.SessionID)
 
 	return nil
+}
+
+func main() {
+	lambda.Start(Handle)
 }

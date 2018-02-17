@@ -18,8 +18,8 @@ The Alexa struct is the initial interface point with the SDK.  Alexa must be
 ```Go
 type Alexa struct {
     ApplicationID       string
-	RequestHandler      RequestHandler
-	IgnoreApplicationID bool
+    RequestHandler      RequestHandler
+    IgnoreApplicationID bool
     IgnoreTimestamp     bool
 }
 ```

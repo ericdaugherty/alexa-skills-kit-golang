@@ -10,18 +10,17 @@ SDK and Samples.
 This explanation assumes familiarity with with AWS Documentation.  Please
 review [Developing an Alexa Skill as a Lambda Function](https://developer.amazon.com/public/solutions/alexa/alexa-skills-kit/docs/developing-an-alexa-skill-as-a-lambda-function) before proceeding. This SDK addresses some of the steps documented here for you, but you should be familiar with the entire process.
 
-This SDK was designed to be used as an AWS Lambda function via the [eawsy lambda shim](https://github.com/eawsy/aws-lambda-go-shim).
-
-The samples directory provides example usage, including a Makefile.
+The samples directory provides example usage.
 
 The Alexa struct is the initial interface point with the SDK.  Alexa must be
  initialized first.  The struct is defined as:
 
 ```Go
 type Alexa struct {
-    ApplicationID   string
-    RequestHandler  RequestHandler
-    IgnoreTimestamp bool
+    ApplicationID       string
+	RequestHandler      RequestHandler
+	IgnoreApplicationID bool
+    IgnoreTimestamp     bool
 }
 ```
 
@@ -29,7 +28,7 @@ The ApplicationID must match the ApplicationID defined in the Alexa Skills
 
 The RequestHandler is an interface that must be implemented, and is called to handle requests.
 
-IgnoreTimestamp should be used during debugging to test with hard-coded requests.
+IgnoreApplicationID and IgnoreTimestamp should be used during debugging to test with hard-coded requests.
 
 Requests from Alexa should be passed into the Alexa.ProcessRequest method.
 
@@ -78,5 +77,4 @@ And more.  These methods handle initializing any required struts within the Resp
 
 This version does not support use as a standalone web server as it does not implement
 any of the HTTPS validation.  It was developed to be used as an AWS Lambda function
-using the [eawsy lambda shim](https://github.com/eawsy/aws-lambda-go-shim)  The samples
-utilize this library.
+using AWS Labda Go support.

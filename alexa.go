@@ -147,8 +147,8 @@ type Stream struct {
 // DialogDirective contains directives for use in Dialog prompts.
 type DialogDirective struct {
 	Type          string  `json:"type"`
-	SlotToElicit  *string `json:"slotToElicit,omitempty"`
-	SlotToConfirm *string `json:"slotToConfirm,omitempty"`
+	SlotToElicit  string  `json:"slotToElicit,omitempty"`
+	SlotToConfirm string  `json:"slotToConfirm,omitempty"`
 	UpdatedIntent *Intent `json:"updatedIntent,omitempty"`
 }
 
@@ -278,7 +278,7 @@ func (r *Response) AddAudioPlayer(playerType, playBehavior, streamToken, url str
 }
 
 // AddDialogDirective adds a Dialog directive to the Response.
-func (r *Response) AddDialogDirective(dialogType string, slotToElicit *string, slotToConfirm *string, intent *Intent) {
+func (r *Response) AddDialogDirective(dialogType, slotToElicit, slotToConfirm string, intent *Intent) {
 	d := DialogDirective{
 		Type:          dialogType,
 		SlotToElicit:  slotToElicit,

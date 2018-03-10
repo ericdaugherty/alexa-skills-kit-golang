@@ -27,10 +27,10 @@ type Alexa struct {
 // RequestHandler defines the interface that must be implemented to handle
 // Alexa Requests
 type RequestHandler interface {
-	OnSessionStarted(*context.Context, *Request, *Session, *Response) error
-	OnLaunch(*context.Context, *Request, *Session, *Response) error
-	OnIntent(*context.Context, *Request, *Session, *Response) error
-	OnSessionEnded(*context.Context, *Request, *Session, *Response) error
+	OnSessionStarted(context.Context, *Request, *Session, *Response) error
+	OnLaunch(context.Context, *Request, *Session, *Response) error
+	OnIntent(context.Context, *Request, *Session, *Response) error
+	OnSessionEnded(context.Context, *Request, *Session, *Response) error
 }
 
 // RequestEnvelope contains the data passed from Alexa to the request handler.
@@ -153,7 +153,7 @@ type DialogDirective struct {
 }
 
 // ProcessRequest handles a request passed from Alexa
-func (alexa *Alexa) ProcessRequest(context *context.Context, requestEnv *RequestEnvelope) (*ResponseEnvelope, error) {
+func (alexa *Alexa) ProcessRequest(context context.Context, requestEnv *RequestEnvelope) (*ResponseEnvelope, error) {
 
 	if !alexa.IgnoreApplicationID {
 		err := alexa.verifyApplicationID(requestEnv)

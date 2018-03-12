@@ -1,6 +1,7 @@
 package alexa
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"testing"
@@ -79,26 +80,27 @@ func TestAlexaAppIDValidation(t *testing.T) {
 	request := createRecipieRequest()
 
 	alexa := getAlexa()
-	_, err := alexa.ProcessRequest(request)
+	ctx := context.Background()
+	_, err := alexa.ProcessRequest(ctx, request)
 	if err != nil {
 		t.Error("Expected ProcessRequest to succeed but got error", err)
 	}
 
 	alexa = &Alexa{ApplicationID: "amzn1.ask.skill.ABC123456", RequestHandler: &emptyRequestHandler{}}
-	_, err = alexa.ProcessRequest(request)
+	_, err = alexa.ProcessRequest(ctx, request)
 	if err == nil {
 		t.Error("Expected ProcessRequest to fail due to invalid Application ID but no err was returned.")
 	}
 
 	alexa = &Alexa{ApplicationID: "", RequestHandler: &emptyRequestHandler{}}
-	_, err = alexa.ProcessRequest(request)
+	_, err = alexa.ProcessRequest(ctx, request)
 	if err == nil {
 		t.Error("Expected ProcessRequest to fail due to an empty Application ID but no err was returned.")
 	}
 
 	alexa = &Alexa{ApplicationID: applicationID, RequestHandler: &emptyRequestHandler{}}
 	request.Session.Application.ApplicationID = ""
-	_, err = alexa.ProcessRequest(request)
+	_, err = alexa.ProcessRequest(ctx, request)
 	if err == nil {
 		t.Error("Expected ProcessRequest to fail due to an empty Request Application ID but no err was returned.")
 	}
@@ -110,27 +112,28 @@ func TestAlexaTimestampValidation(t *testing.T) {
 	alexa := getAlexa()
 	duration, _ := time.ParseDuration("-145s")
 	request.Request.Timestamp = time.Now().Add(duration).Format(time.RFC3339)
-	_, err := alexa.ProcessRequest(request)
+	ctx := context.Background()
+	_, err := alexa.ProcessRequest(ctx, request)
 	if err != nil {
 		t.Error("Expected ProcessRequest to succeed but got error", err)
 	}
 
 	duration, _ = time.ParseDuration("-151s")
 	request.Request.Timestamp = time.Now().Add(duration).Format(time.RFC3339)
-	_, err = alexa.ProcessRequest(request)
+	_, err = alexa.ProcessRequest(ctx, request)
 	if err == nil {
 		t.Error("Expected ProcessRequest to fail to due to an invalid timetamp but no err was returned.")
 	}
 
 	duration, _ = time.ParseDuration("151s")
 	request.Request.Timestamp = time.Now().Add(duration).Format(time.RFC3339)
-	_, err = alexa.ProcessRequest(request)
+	_, err = alexa.ProcessRequest(ctx, request)
 	if err == nil {
 		t.Error("Expected ProcessRequest to fail to due to an invalid timetamp but no err was returned.")
 	}
 
 	request.Request.Timestamp = "UNPARSEABLE"
-	_, err = alexa.ProcessRequest(request)
+	_, err = alexa.ProcessRequest(ctx, request)
 	if err == nil {
 		t.Error("Expected ProcessRequest to fail because the timestamp could not be parsed but no err was returned")
 	}
@@ -138,7 +141,7 @@ func TestAlexaTimestampValidation(t *testing.T) {
 	alexa.SetTimestampTolerance(0)
 	duration, _ = time.ParseDuration("-1s")
 	request.Request.Timestamp = time.Now().Add(duration).Format(time.RFC3339)
-	_, err = alexa.ProcessRequest(request)
+	_, err = alexa.ProcessRequest(ctx, request)
 	alexa.SetTimestampTolerance(150)
 	if err == nil {
 		t.Error("Expected ProcessRequest to fail to due to an invalid timetamp but no err was returned.")
@@ -148,7 +151,7 @@ func TestAlexaTimestampValidation(t *testing.T) {
 	duration, _ = time.ParseDuration("151s")
 	request.Request.Timestamp = time.Now().Add(duration).Format(time.RFC3339)
 	alexa.IgnoreTimestamp = true
-	_, err = alexa.ProcessRequest(request)
+	_, err = alexa.ProcessRequest(ctx, request)
 	if err != nil {
 		t.Error("Expected ProcessRequest to pass even with an invalid timestamp because validation is disabled.")
 	}
@@ -160,7 +163,8 @@ func TestAlexaOnSessionStartedCalled(t *testing.T) {
 
 	handler := &emptyRequestHandler{}
 	alexa := getAlexaWithHandler(handler)
-	_, err := alexa.ProcessRequest(request)
+	ctx := context.Background()
+	_, err := alexa.ProcessRequest(ctx, request)
 	if err != nil {
 		t.Error("Error processing request. " + err.Error())
 	}
@@ -171,7 +175,7 @@ func TestAlexaOnSessionStartedCalled(t *testing.T) {
 	handler = &emptyRequestHandler{}
 	alexa = getAlexaWithHandler(handler)
 	request.Session.New = true
-	_, err = alexa.ProcessRequest(request)
+	_, err = alexa.ProcessRequest(ctx, request)
 	if err != nil {
 		t.Error("Error processing request. " + err.Error())
 	}
@@ -183,7 +187,7 @@ func TestAlexaOnSessionStartedCalled(t *testing.T) {
 	alexa = getAlexaWithHandler(handler)
 	request.Session.New = true
 	handler.OnSessionStartThrowsErr = true
-	_, err = alexa.ProcessRequest(request)
+	_, err = alexa.ProcessRequest(ctx, request)
 	if !handler.OnSessionStartedCalled {
 		t.Error("On SessionStarted was not called for a new session.")
 	}
@@ -198,7 +202,8 @@ func TestAlexaOnLaunchCalled(t *testing.T) {
 
 	handler := &emptyRequestHandler{}
 	alexa := getAlexaWithHandler(handler)
-	_, err := alexa.ProcessRequest(request)
+	ctx := context.Background()
+	_, err := alexa.ProcessRequest(ctx, request)
 	if err != nil {
 		t.Error("Error processing request. " + err.Error())
 	}
@@ -209,7 +214,7 @@ func TestAlexaOnLaunchCalled(t *testing.T) {
 	handler = &emptyRequestHandler{}
 	alexa = getAlexaWithHandler(handler)
 	handler.OnLaunchThrowsErr = true
-	_, err = alexa.ProcessRequest(request)
+	_, err = alexa.ProcessRequest(ctx, request)
 	if !handler.OnLaunchCalled {
 		t.Error("OnLaunch was not called.")
 	}
@@ -224,7 +229,8 @@ func TestAlexaOnIntentCalled(t *testing.T) {
 
 	handler := &emptyRequestHandler{}
 	alexa := getAlexaWithHandler(handler)
-	_, err := alexa.ProcessRequest(request)
+	ctx := context.Background()
+	_, err := alexa.ProcessRequest(ctx, request)
 	if err != nil {
 		t.Error("Error processing request. " + err.Error())
 	}
@@ -235,7 +241,7 @@ func TestAlexaOnIntentCalled(t *testing.T) {
 	handler = &emptyRequestHandler{}
 	alexa = getAlexaWithHandler(handler)
 	handler.OnIntentThrowsErr = true
-	_, err = alexa.ProcessRequest(request)
+	_, err = alexa.ProcessRequest(ctx, request)
 	if !handler.OnIntentCalled {
 		t.Error("OnIntent was not called.")
 	}
@@ -250,7 +256,9 @@ func TestAlexaOnSessionEndedCalled(t *testing.T) {
 
 	handler := &emptyRequestHandler{}
 	alexa := getAlexaWithHandler(handler)
-	_, err := alexa.ProcessRequest(request)
+
+	ctx := context.Background()
+	_, err := alexa.ProcessRequest(ctx, request)
 	if err != nil {
 		t.Error("Error processing request. " + err.Error())
 	}
@@ -261,7 +269,7 @@ func TestAlexaOnSessionEndedCalled(t *testing.T) {
 	handler = &emptyRequestHandler{}
 	alexa = getAlexaWithHandler(handler)
 	handler.OnSessionEndedThrowsErr = true
-	_, err = alexa.ProcessRequest(request)
+	_, err = alexa.ProcessRequest(ctx, request)
 	if !handler.OnSessionEndedCalled {
 		t.Error("OnSessionEnded was not called.")
 	}
@@ -274,7 +282,8 @@ func TestAlexaSimpleTextResponse(t *testing.T) {
 	request := createRecipieRequest()
 
 	alexa := getAlexaWithHandler(&simpleResponseHandler{})
-	responseEnv, err := alexa.ProcessRequest(request)
+	ctx := context.Background()
+	responseEnv, err := alexa.ProcessRequest(ctx, request)
 	if err != nil {
 		t.Error("Error processing request. " + err.Error())
 	}
@@ -298,7 +307,8 @@ func TestSimpleSSMLResponse(t *testing.T) {
 	request := createRecipieRequest()
 
 	alexa := getAlexaWithHandler(&simpleSSMLResponseHandler{})
-	responseEnv, err := alexa.ProcessRequest(request)
+	ctx := context.Background()
+	responseEnv, err := alexa.ProcessRequest(ctx, request)
 	if err != nil {
 		t.Error("Error processing request. " + err.Error())
 	}
@@ -323,7 +333,8 @@ func TestCards(t *testing.T) {
 
 	cardHandler := &simpleCardResponseHandler{Type: "Simple"}
 	alexa := getAlexaWithHandler(cardHandler)
-	responseEnv, err := alexa.ProcessRequest(request)
+	ctx := context.Background()
+	responseEnv, err := alexa.ProcessRequest(ctx, request)
 	if err != nil {
 		t.Error("Error processing request. " + err.Error())
 	}
@@ -335,7 +346,7 @@ func TestCards(t *testing.T) {
 	}
 
 	cardHandler.Type = "Standard"
-	responseEnv, err = alexa.ProcessRequest(request)
+	responseEnv, err = alexa.ProcessRequest(ctx, request)
 	if err != nil {
 		t.Error("Error processing request. " + err.Error())
 	}
@@ -347,7 +358,7 @@ func TestCards(t *testing.T) {
 	}
 
 	cardHandler.Type = "LinkAccount"
-	responseEnv, err = alexa.ProcessRequest(request)
+	responseEnv, err = alexa.ProcessRequest(ctx, request)
 	if err != nil {
 		t.Error("Error processing request. " + err.Error())
 	}
@@ -362,7 +373,8 @@ func TestAudioPlayer(t *testing.T) {
 
 	audioPlayerHandler := &simpleAudioPlayerResponseHandler{Type: "Simple"}
 	alexa := getAlexaWithHandler(audioPlayerHandler)
-	responseEnv, err := alexa.ProcessRequest(request)
+	ctx := context.Background()
+	responseEnv, err := alexa.ProcessRequest(ctx, request)
 	if err != nil {
 		t.Error("Error processing request. " + err.Error())
 	}
@@ -386,7 +398,8 @@ func TestSimpleDialogDirective(t *testing.T) {
 
 	simpleDialogDirectiveResponseHandler := &simpleDialogDirectiveResponseHandler{Type: "Simple"}
 	alexa := getAlexaWithHandler(simpleDialogDirectiveResponseHandler)
-	responseEnv, err := alexa.ProcessRequest(request)
+	ctx := context.Background()
+	responseEnv, err := alexa.ProcessRequest(ctx, request)
 	if err != nil {
 		t.Error("Error processing request. " + err.Error())
 	}
@@ -410,7 +423,8 @@ func TestNoIntentDialogDirective(t *testing.T) {
 
 	simpleDialogDirectiveResponseHandler := &simpleDialogDirectiveResponseHandler{Type: "NoIntent"}
 	alexa := getAlexaWithHandler(simpleDialogDirectiveResponseHandler)
-	responseEnv, err := alexa.ProcessRequest(request)
+	ctx := context.Background()
+	responseEnv, err := alexa.ProcessRequest(ctx, request)
 	if err != nil {
 		t.Error("Error processing request. " + err.Error())
 	}
@@ -456,7 +470,7 @@ type emptyRequestHandler struct {
 	OnSessionEndedThrowsErr bool
 }
 
-func (h *emptyRequestHandler) OnSessionStarted(*Request, *Session, *Response) error {
+func (h *emptyRequestHandler) OnSessionStarted(context.Context, *Request, *Session, *Response) error {
 	h.OnSessionStartedCalled = true
 	if h.OnSessionStartThrowsErr {
 		return errors.New("Error in OnSessionStarted")
@@ -464,7 +478,7 @@ func (h *emptyRequestHandler) OnSessionStarted(*Request, *Session, *Response) er
 	return nil
 }
 
-func (h *emptyRequestHandler) OnLaunch(*Request, *Session, *Response) error {
+func (h *emptyRequestHandler) OnLaunch(context.Context, *Request, *Session, *Response) error {
 	h.OnLaunchCalled = true
 	if h.OnLaunchThrowsErr {
 		return errors.New("Error in OnLaunch")
@@ -472,7 +486,7 @@ func (h *emptyRequestHandler) OnLaunch(*Request, *Session, *Response) error {
 	return nil
 }
 
-func (h *emptyRequestHandler) OnIntent(*Request, *Session, *Response) error {
+func (h *emptyRequestHandler) OnIntent(context.Context, *Request, *Session, *Response) error {
 	h.OnIntentCalled = true
 	if h.OnIntentThrowsErr {
 		return errors.New("Error in OnIntent")
@@ -480,7 +494,7 @@ func (h *emptyRequestHandler) OnIntent(*Request, *Session, *Response) error {
 	return nil
 }
 
-func (h *emptyRequestHandler) OnSessionEnded(*Request, *Session, *Response) error {
+func (h *emptyRequestHandler) OnSessionEnded(context.Context, *Request, *Session, *Response) error {
 	h.OnSessionEndedCalled = true
 	if h.OnSessionEndedThrowsErr {
 		return errors.New("Error in OnSessionEnded")
@@ -491,15 +505,15 @@ func (h *emptyRequestHandler) OnSessionEnded(*Request, *Session, *Response) erro
 type simpleResponseHandler struct {
 }
 
-func (h *simpleResponseHandler) OnSessionStarted(*Request, *Session, *Response) error {
+func (h *simpleResponseHandler) OnSessionStarted(context.Context, *Request, *Session, *Response) error {
 	return nil
 }
 
-func (h *simpleResponseHandler) OnLaunch(*Request, *Session, *Response) error {
+func (h *simpleResponseHandler) OnLaunch(context.Context, *Request, *Session, *Response) error {
 	return nil
 }
 
-func (h *simpleResponseHandler) OnIntent(request *Request, session *Session, response *Response) error {
+func (h *simpleResponseHandler) OnIntent(context context.Context, request *Request, session *Session, response *Response) error {
 
 	response.SetOutputText("Response Text")
 	response.SetRepromptText("Reprompt Text")
@@ -507,22 +521,22 @@ func (h *simpleResponseHandler) OnIntent(request *Request, session *Session, res
 	return nil
 }
 
-func (h *simpleResponseHandler) OnSessionEnded(*Request, *Session, *Response) error {
+func (h *simpleResponseHandler) OnSessionEnded(context.Context, *Request, *Session, *Response) error {
 	return nil
 }
 
 type simpleSSMLResponseHandler struct {
 }
 
-func (h *simpleSSMLResponseHandler) OnSessionStarted(*Request, *Session, *Response) error {
+func (h *simpleSSMLResponseHandler) OnSessionStarted(context.Context, *Request, *Session, *Response) error {
 	return nil
 }
 
-func (h *simpleSSMLResponseHandler) OnLaunch(*Request, *Session, *Response) error {
+func (h *simpleSSMLResponseHandler) OnLaunch(context.Context, *Request, *Session, *Response) error {
 	return nil
 }
 
-func (h *simpleSSMLResponseHandler) OnIntent(request *Request, session *Session, response *Response) error {
+func (h *simpleSSMLResponseHandler) OnIntent(context context.Context, request *Request, session *Session, response *Response) error {
 
 	response.SetOutputSSML("<speak>This output speech uses SSML.</speak>")
 	response.SetRepromptSSML("<speak>This Reprompt speech uses SSML.</speak>")
@@ -530,7 +544,7 @@ func (h *simpleSSMLResponseHandler) OnIntent(request *Request, session *Session,
 	return nil
 }
 
-func (h *simpleSSMLResponseHandler) OnSessionEnded(*Request, *Session, *Response) error {
+func (h *simpleSSMLResponseHandler) OnSessionEnded(context.Context, *Request, *Session, *Response) error {
 	return nil
 }
 
@@ -538,15 +552,15 @@ type simpleCardResponseHandler struct {
 	Type string
 }
 
-func (h *simpleCardResponseHandler) OnSessionStarted(*Request, *Session, *Response) error {
+func (h *simpleCardResponseHandler) OnSessionStarted(context.Context, *Request, *Session, *Response) error {
 	return nil
 }
 
-func (h *simpleCardResponseHandler) OnLaunch(*Request, *Session, *Response) error {
+func (h *simpleCardResponseHandler) OnLaunch(context.Context, *Request, *Session, *Response) error {
 	return nil
 }
 
-func (h *simpleCardResponseHandler) OnIntent(request *Request, session *Session, response *Response) error {
+func (h *simpleCardResponseHandler) OnIntent(context context.Context, request *Request, session *Session, response *Response) error {
 
 	switch h.Type {
 	case "Simple":
@@ -562,7 +576,7 @@ func (h *simpleCardResponseHandler) OnIntent(request *Request, session *Session,
 	return nil
 }
 
-func (h *simpleCardResponseHandler) OnSessionEnded(*Request, *Session, *Response) error {
+func (h *simpleCardResponseHandler) OnSessionEnded(context.Context, *Request, *Session, *Response) error {
 	return nil
 }
 
@@ -570,22 +584,22 @@ type simpleAudioPlayerResponseHandler struct {
 	Type string
 }
 
-func (h *simpleAudioPlayerResponseHandler) OnSessionStarted(*Request, *Session, *Response) error {
+func (h *simpleAudioPlayerResponseHandler) OnSessionStarted(context.Context, *Request, *Session, *Response) error {
 	return nil
 }
 
-func (h *simpleAudioPlayerResponseHandler) OnLaunch(*Request, *Session, *Response) error {
+func (h *simpleAudioPlayerResponseHandler) OnLaunch(context.Context, *Request, *Session, *Response) error {
 	return nil
 }
 
-func (h *simpleAudioPlayerResponseHandler) OnIntent(request *Request, session *Session, response *Response) error {
+func (h *simpleAudioPlayerResponseHandler) OnIntent(context context.Context, request *Request, session *Session, response *Response) error {
 
 	response.AddAudioPlayer("AudioPlayer.Play", "REPLACE_ALL", "track2-long-audio", "https://my-audio-hosting-site.com/audio/sample-song-2.mp3", 100)
 
 	return nil
 }
 
-func (h *simpleAudioPlayerResponseHandler) OnSessionEnded(*Request, *Session, *Response) error {
+func (h *simpleAudioPlayerResponseHandler) OnSessionEnded(context.Context, *Request, *Session, *Response) error {
 	return nil
 }
 
@@ -593,15 +607,15 @@ type simpleDialogDirectiveResponseHandler struct {
 	Type string
 }
 
-func (h *simpleDialogDirectiveResponseHandler) OnSessionStarted(*Request, *Session, *Response) error {
+func (h *simpleDialogDirectiveResponseHandler) OnSessionStarted(context.Context, *Request, *Session, *Response) error {
 	return nil
 }
 
-func (h *simpleDialogDirectiveResponseHandler) OnLaunch(*Request, *Session, *Response) error {
+func (h *simpleDialogDirectiveResponseHandler) OnLaunch(context.Context, *Request, *Session, *Response) error {
 	return nil
 }
 
-func (h *simpleDialogDirectiveResponseHandler) OnIntent(request *Request, session *Session, response *Response) error {
+func (h *simpleDialogDirectiveResponseHandler) OnIntent(context context.Context, request *Request, session *Session, response *Response) error {
 
 	switch h.Type {
 	case "Simple":
@@ -624,6 +638,6 @@ func (h *simpleDialogDirectiveResponseHandler) OnIntent(request *Request, sessio
 	return nil
 }
 
-func (h *simpleDialogDirectiveResponseHandler) OnSessionEnded(*Request, *Session, *Response) error {
+func (h *simpleDialogDirectiveResponseHandler) OnSessionEnded(context.Context, *Request, *Session, *Response) error {
 	return nil
 }

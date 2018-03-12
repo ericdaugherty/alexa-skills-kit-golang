@@ -1,6 +1,7 @@
 package alexa
 
 import (
+	"context"
 	"errors"
 	"log"
 	"math"
@@ -26,10 +27,10 @@ type Alexa struct {
 // RequestHandler defines the interface that must be implemented to handle
 // Alexa Requests
 type RequestHandler interface {
-	OnSessionStarted(*Request, *Session, *Response) error
-	OnLaunch(*Request, *Session, *Response) error
-	OnIntent(*Request, *Session, *Response) error
-	OnSessionEnded(*Request, *Session, *Response) error
+	OnSessionStarted(context.Context, *Request, *Session, *Response) error
+	OnLaunch(context.Context, *Request, *Session, *Response) error
+	OnIntent(context.Context, *Request, *Session, *Response) error
+	OnSessionEnded(context.Context, *Request, *Session, *Response) error
 }
 
 // RequestEnvelope contains the data passed from Alexa to the request handler.
@@ -153,7 +154,7 @@ type DialogDirective struct {
 }
 
 // ProcessRequest handles a request passed from Alexa
-func (alexa *Alexa) ProcessRequest(requestEnv *RequestEnvelope) (*ResponseEnvelope, error) {
+func (alexa *Alexa) ProcessRequest(context context.Context, requestEnv *RequestEnvelope) (*ResponseEnvelope, error) {
 
 	if !alexa.IgnoreApplicationID {
 		err := alexa.verifyApplicationID(requestEnv)
@@ -182,7 +183,7 @@ func (alexa *Alexa) ProcessRequest(requestEnv *RequestEnvelope) (*ResponseEnvelo
 
 	// If it is a new session, invoke onSessionStarted
 	if session.New {
-		err := alexa.RequestHandler.OnSessionStarted(request, session, response)
+		err := alexa.RequestHandler.OnSessionStarted(context, request, session, response)
 		if err != nil {
 			log.Println("Error handling OnSessionStarted.", err.Error())
 			return nil, err
@@ -191,19 +192,19 @@ func (alexa *Alexa) ProcessRequest(requestEnv *RequestEnvelope) (*ResponseEnvelo
 
 	switch requestEnv.Request.Type {
 	case launchRequestName:
-		err := alexa.RequestHandler.OnLaunch(request, session, response)
+		err := alexa.RequestHandler.OnLaunch(context, request, session, response)
 		if err != nil {
 			log.Println("Error handling OnLaunch.", err.Error())
 			return nil, err
 		}
 	case intentRequestName:
-		err := alexa.RequestHandler.OnIntent(request, session, response)
+		err := alexa.RequestHandler.OnIntent(context, request, session, response)
 		if err != nil {
 			log.Println("Error handling OnIntent.", err.Error())
 			return nil, err
 		}
 	case sessionEndedRequestName:
-		err := alexa.RequestHandler.OnSessionEnded(request, session, response)
+		err := alexa.RequestHandler.OnSessionEnded(context, request, session, response)
 		if err != nil {
 			log.Println("Error handling OnSessionEnded.", err.Error())
 			return nil, err

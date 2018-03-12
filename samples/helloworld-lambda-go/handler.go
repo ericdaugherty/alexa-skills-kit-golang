@@ -18,11 +18,11 @@ type HelloWorld struct{}
 
 // Handle processes calls from Lambda
 func Handle(ctx context.Context, requestEnv *alexa.RequestEnvelope) (interface{}, error) {
-	return a.ProcessRequest(requestEnv)
+	return a.ProcessRequest(ctx, requestEnv)
 }
 
 // OnSessionStarted called when a new session is created.
-func (h *HelloWorld) OnSessionStarted(request *alexa.Request, session *alexa.Session, response *alexa.Response) error {
+func (h *HelloWorld) OnSessionStarted(context context.Context, request *alexa.Request, session *alexa.Session, response *alexa.Response) error {
 
 	log.Printf("OnSessionStarted requestId=%s, sessionId=%s", request.RequestID, session.SessionID)
 
@@ -30,7 +30,7 @@ func (h *HelloWorld) OnSessionStarted(request *alexa.Request, session *alexa.Ses
 }
 
 // OnLaunch called with a reqeust is received of type LaunchRequest
-func (h *HelloWorld) OnLaunch(request *alexa.Request, session *alexa.Session, response *alexa.Response) error {
+func (h *HelloWorld) OnLaunch(context context.Context, request *alexa.Request, session *alexa.Session, response *alexa.Response) error {
 	speechText := "Welcome to the Alexa Skills Kit, you can say hello"
 
 	log.Printf("OnLaunch requestId=%s, sessionId=%s", request.RequestID, session.SessionID)
@@ -45,7 +45,7 @@ func (h *HelloWorld) OnLaunch(request *alexa.Request, session *alexa.Session, re
 }
 
 // OnIntent called with a reqeust is received of type IntentRequest
-func (h *HelloWorld) OnIntent(request *alexa.Request, session *alexa.Session, response *alexa.Response) error {
+func (h *HelloWorld) OnIntent(context context.Context, request *alexa.Request, session *alexa.Session, response *alexa.Response) error {
 
 	log.Printf("OnIntent requestId=%s, sessionId=%s, intent=%s", request.RequestID, session.SessionID, request.Intent.Name)
 
@@ -73,7 +73,7 @@ func (h *HelloWorld) OnIntent(request *alexa.Request, session *alexa.Session, re
 }
 
 // OnSessionEnded called with a reqeust is received of type SessionEndedRequest
-func (h *HelloWorld) OnSessionEnded(request *alexa.Request, session *alexa.Session, response *alexa.Response) error {
+func (h *HelloWorld) OnSessionEnded(context context.Context, request *alexa.Request, session *alexa.Session, response *alexa.Response) error {
 
 	log.Printf("OnSessionEnded requestId=%s, sessionId=%s", request.RequestID, session.SessionID)
 

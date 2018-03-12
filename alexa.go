@@ -77,10 +77,10 @@ type Intent struct {
 
 // IntentSlot contains the data for one Slot
 type IntentSlot struct {
-	Name               string  `json:"name"`
-	ConfirmationStatus string  `json:"confirmationStatus,omitempty"`
-	Value              string  `json:"value"`
-	ID                 *string `json:"id,omitempty"`
+	Name               string `json:"name"`
+	ConfirmationStatus string `json:"confirmationStatus,omitempty"`
+	Value              string `json:"value"`
+	ID                 string `json:"id,omitempty"`
 }
 
 // ResponseEnvelope contains the Response and additional attributes.

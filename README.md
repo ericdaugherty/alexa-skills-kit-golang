@@ -33,7 +33,7 @@ IgnoreApplicationID and IgnoreTimestamp should be used during debugging to test 
 Requests from Alexa should be passed into the Alexa.ProcessRequest method.
 
 ```Go
-func (alexa *Alexa) ProcessRequest(requestEnv *RequestEnvelope) (*ResponseEnvelope, error)
+func (alexa *Alexa) ProcessRequest(context context.Context, requestEnv *RequestEnvelope) (*ResponseEnvelope, error)
 ```
 
 This method takes the incoming request and validates it, and the calls the
@@ -45,10 +45,10 @@ back to the Alexa skill.
 RequestHandler interface is defined as:
 ```Go
 type RequestHandler interface {
-	OnSessionStarted(*Request, *Session, *Response) error
-	OnLaunch(*Request, *Session, *Response) error
-	OnIntent(*Request, *Session, *Response) error
-	OnSessionEnded(*Request, *Session, *Response) error
+	OnSessionStarted(context.Context, *Request, *Session, *Response) error
+	OnLaunch(context.Context, *Request, *Session, *Response) error
+	OnIntent(context.Context, *Request, *Session, *Response) error
+	OnSessionEnded(context.Context, *Request, *Session, *Response) error
 }
 ```
 

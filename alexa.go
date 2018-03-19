@@ -27,10 +27,10 @@ type Alexa struct {
 // RequestHandler defines the interface that must be implemented to handle
 // Alexa Requests
 type RequestHandler interface {
-	OnSessionStarted(context.Context, *Request, *Session, *Response) error
-	OnLaunch(context.Context, *Request, *Session, *Response) error
-	OnIntent(context.Context, *Request, *Session, *Response) error
-	OnSessionEnded(context.Context, *Request, *Session, *Response) error
+	OnSessionStarted(context.Context, *Request, *Session, *Context, *Response) error
+	OnLaunch(context.Context, *Request, *Session, *Context, *Response) error
+	OnIntent(context.Context, *Request, *Session, *Context, *Response) error
+	OnSessionEnded(context.Context, *Request, *Session, *Context, *Response) error
 }
 
 // RequestEnvelope contains the data passed from Alexa to the request handler.
@@ -38,7 +38,7 @@ type RequestEnvelope struct {
 	Version string   `json:"version"`
 	Session *Session `json:"session"`
 	Request *Request `json:"request"`
-	// TODO Add Request Context
+	Context *Context `json:"context"`
 }
 
 // Session containes the session data from the Alexa request.
@@ -55,6 +55,36 @@ type Session struct {
 	Application struct {
 		ApplicationID string `json:"applicationId"`
 	} `json:"application"`
+}
+
+type Context struct {
+	AudioPlayer struct {
+		PlayerActivity string `json:"playerActivity"`
+	} `json:"AudioPlayer"`
+	Display struct {
+		Token string `json:"token"`
+	} `json:"Display"`
+	System struct {
+		Application struct {
+			ApplicationID string `json:"applicationId"`
+		} `json:"application"`
+		User struct {
+			UserID string `json:"userId"`
+		} `json:"user"`
+		Device struct {
+			DeviceID            string `json:"deviceId"`
+			SupportedInterfaces struct {
+				AudioPlayer struct {
+				} `json:"AudioPlayer"`
+				Display struct {
+					TemplateVersion string `json:"templateVersion"`
+					MarkupVersion   string `json:"markupVersion"`
+				} `json:"Display"`
+			} `json:"supportedInterfaces"`
+		} `json:"device"`
+		APIEndpoint    string `json:"apiEndpoint"`
+		APIAccessToken string `json:"apiAccessToken"`
+	} `json:"System"`
 }
 
 // Request contines the data in the request within the main request.
@@ -154,7 +184,7 @@ type DialogDirective struct {
 }
 
 // ProcessRequest handles a request passed from Alexa
-func (alexa *Alexa) ProcessRequest(context context.Context, requestEnv *RequestEnvelope) (*ResponseEnvelope, error) {
+func (alexa *Alexa) ProcessRequest(ctx context.Context, requestEnv *RequestEnvelope) (*ResponseEnvelope, error) {
 
 	if !alexa.IgnoreApplicationID {
 		err := alexa.verifyApplicationID(requestEnv)
@@ -173,6 +203,7 @@ func (alexa *Alexa) ProcessRequest(context context.Context, requestEnv *RequestE
 
 	request := requestEnv.Request
 	session := requestEnv.Session
+	context := requestEnv.Context
 
 	responseEnv := &ResponseEnvelope{}
 	responseEnv.Version = sdkVersion
@@ -183,7 +214,7 @@ func (alexa *Alexa) ProcessRequest(context context.Context, requestEnv *RequestE
 
 	// If it is a new session, invoke onSessionStarted
 	if session.New {
-		err := alexa.RequestHandler.OnSessionStarted(context, request, session, response)
+		err := alexa.RequestHandler.OnSessionStarted(ctx, request, session, context, response)
 		if err != nil {
 			log.Println("Error handling OnSessionStarted.", err.Error())
 			return nil, err
@@ -192,19 +223,19 @@ func (alexa *Alexa) ProcessRequest(context context.Context, requestEnv *RequestE
 
 	switch requestEnv.Request.Type {
 	case launchRequestName:
-		err := alexa.RequestHandler.OnLaunch(context, request, session, response)
+		err := alexa.RequestHandler.OnLaunch(ctx, request, session, context, response)
 		if err != nil {
 			log.Println("Error handling OnLaunch.", err.Error())
 			return nil, err
 		}
 	case intentRequestName:
-		err := alexa.RequestHandler.OnIntent(context, request, session, response)
+		err := alexa.RequestHandler.OnIntent(ctx, request, session, context, response)
 		if err != nil {
 			log.Println("Error handling OnIntent.", err.Error())
 			return nil, err
 		}
 	case sessionEndedRequestName:
-		err := alexa.RequestHandler.OnSessionEnded(context, request, session, response)
+		err := alexa.RequestHandler.OnSessionEnded(ctx, request, session, context, response)
 		if err != nil {
 			log.Println("Error handling OnSessionEnded.", err.Error())
 			return nil, err

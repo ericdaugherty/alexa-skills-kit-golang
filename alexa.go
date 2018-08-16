@@ -330,6 +330,10 @@ func (r *Response) AddDialogDirective(dialogType, slotToElicit, slotToConfirm st
 // verifyApplicationId verifies that the ApplicationID sent in the request
 // matches the one configured for this skill.
 func (alexa *Alexa) verifyApplicationID(request *RequestEnvelope) error {
+	if request == nil {
+		return ErrRequestEnvelopeNil
+	}
+
 	appID := alexa.ApplicationID
 	requestAppID := request.Session.Application.ApplicationID
 	if appID == "" {
@@ -348,6 +352,9 @@ func (alexa *Alexa) verifyApplicationID(request *RequestEnvelope) error {
 // verifyTimestamp compares the request timestamp to the current timestamp
 // and returns an error if they are too far apart.
 func (alexa *Alexa) verifyTimestamp(request *RequestEnvelope) error {
+	if request == nil {
+		return ErrRequestEnvelopeNil
+	}
 
 	timestamp, err := time.Parse(time.RFC3339, request.Request.Timestamp)
 	if err != nil {

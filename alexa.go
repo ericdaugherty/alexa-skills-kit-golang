@@ -16,6 +16,10 @@ const sessionEndedRequestName = "SessionEndedRequest"
 
 var timestampTolerance = 150
 
+// ErrRequestEnvelopeNil reports that the request envelope was nil
+// there might be edge case which causes panic if for whatever reason this object is empty
+var ErrRequestEnvelopeNil = errors.New("request envelope was nil")
+
 // Alexa defines the primary interface to use to create an Alexa request handler.
 type Alexa struct {
 	ApplicationID       string
@@ -185,6 +189,9 @@ type DialogDirective struct {
 
 // ProcessRequest handles a request passed from Alexa
 func (alexa *Alexa) ProcessRequest(ctx context.Context, requestEnv *RequestEnvelope) (*ResponseEnvelope, error) {
+	if requestEnv == nil {
+		return nil, ErrRequestEnvelopeNil
+	}
 
 	if !alexa.IgnoreApplicationID {
 		err := alexa.verifyApplicationID(requestEnv)
@@ -323,6 +330,10 @@ func (r *Response) AddDialogDirective(dialogType, slotToElicit, slotToConfirm st
 // verifyApplicationId verifies that the ApplicationID sent in the request
 // matches the one configured for this skill.
 func (alexa *Alexa) verifyApplicationID(request *RequestEnvelope) error {
+	if request == nil {
+		return ErrRequestEnvelopeNil
+	}
+
 	appID := alexa.ApplicationID
 	requestAppID := request.Session.Application.ApplicationID
 	if appID == "" {
@@ -341,6 +352,9 @@ func (alexa *Alexa) verifyApplicationID(request *RequestEnvelope) error {
 // verifyTimestamp compares the request timestamp to the current timestamp
 // and returns an error if they are too far apart.
 func (alexa *Alexa) verifyTimestamp(request *RequestEnvelope) error {
+	if request == nil {
+		return ErrRequestEnvelopeNil
+	}
 
 	timestamp, err := time.Parse(time.RFC3339, request.Request.Timestamp)
 	if err != nil {

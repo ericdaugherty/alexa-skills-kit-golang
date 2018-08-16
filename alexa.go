@@ -16,6 +16,10 @@ const sessionEndedRequestName = "SessionEndedRequest"
 
 var timestampTolerance = 150
 
+// ErrRequestEnvelopeNil reports that the request envelope was nil
+// there might be edge case which causes panic if for whatever reason this object is empty
+var ErrRequestEnvelopeNil = errors.New("request envelope was nil")
+
 // Alexa defines the primary interface to use to create an Alexa request handler.
 type Alexa struct {
 	ApplicationID       string
@@ -185,6 +189,9 @@ type DialogDirective struct {
 
 // ProcessRequest handles a request passed from Alexa
 func (alexa *Alexa) ProcessRequest(ctx context.Context, requestEnv *RequestEnvelope) (*ResponseEnvelope, error) {
+	if requestEnv == nil {
+		return nil, ErrRequestEnvelopeNil
+	}
 
 	if !alexa.IgnoreApplicationID {
 		err := alexa.verifyApplicationID(requestEnv)

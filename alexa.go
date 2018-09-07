@@ -93,7 +93,7 @@ type Context struct {
 	} `json:"System"`
 }
 
-// Request contines the data in the request within the main request.
+// Request contains the data in the request within the main request.
 type Request struct {
 	Locale      string `json:"locale"`
 	Timestamp   string `json:"timestamp"`
@@ -376,7 +376,7 @@ func (alexa *Alexa) verifyTimestamp(request *RequestEnvelope) error {
 	delta := now.Sub(timestamp)
 	deltaSecsAbs := math.Abs(delta.Seconds())
 	if deltaSecsAbs > float64(timestampTolerance) {
-		return errors.New("Invalid Timestamp. The request timestap " + timestamp.String() + " was off the current time " + now.String() + " by more than " + strconv.FormatInt(int64(timestampTolerance), 10) + " seconds.")
+		return errors.New("Invalid Timestamp. The request timestamp " + timestamp.String() + " was off the current time " + now.String() + " by more than " + strconv.FormatInt(int64(timestampTolerance), 10) + " seconds.")
 	}
 
 	return nil

@@ -45,14 +45,14 @@ back to the Alexa skill.
 RequestHandler interface is defined as:
 ```Go
 type RequestHandler interface {
-	OnSessionStarted(context.Context, *Request, *Session, *Response) error
-	OnLaunch(context.Context, *Request, *Session, *Response) error
-	OnIntent(context.Context, *Request, *Session, *Response) error
-	OnSessionEnded(context.Context, *Request, *Session, *Response) error
+	OnSessionStarted(context.Context, *Request, *Session, *Context, *Response) error
+	OnLaunch(context.Context, *Request, *Session, *Context, *Response) error
+	OnIntent(context.Context, *Request, *Session, *Context, *Response) error
+	OnSessionEnded(context.Context, *Request, *Session, *Context, *Response) error
 }
 ```
 
-For a summary of these methods, please see the [Handling Reqeusts Sent By Alexa](https://developer.amazon.com/public/solutions/alexa/alexa-skills-kit/docs/handling-requests-sent-by-alexa) documentation.
+For a summary of these methods, please see the [Handling Requests Sent By Alexa](https://developer.amazon.com/public/solutions/alexa/alexa-skills-kit/docs/handling-requests-sent-by-alexa) documentation.
 
 You can directly manipulate the Response struct, but it is not initialized by default and use of the connivence methods is recommended.
 

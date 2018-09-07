@@ -3,6 +3,7 @@ package alexa
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"math"
 	"strconv"
@@ -173,6 +174,9 @@ func (alexa *Alexa) ProcessRequest(context context.Context, requestEnv *RequestE
 
 	request := requestEnv.Request
 	session := requestEnv.Session
+	if session.Attributes.String == nil {
+		session.Attributes.String = make(map[string]interface{})
+	}
 
 	responseEnv := &ResponseEnvelope{}
 	responseEnv.Version = sdkVersion
@@ -209,6 +213,13 @@ func (alexa *Alexa) ProcessRequest(context context.Context, requestEnv *RequestE
 			log.Println("Error handling OnSessionEnded.", err.Error())
 			return nil, err
 		}
+	}
+
+	// Copy Session Attributes into ResponseEnvelope
+	responseEnv.SessionAttributes = make(map[string]interface{})
+	for n, v := range session.Attributes.String {
+		fmt.Println("Setting ", n, "to", v)
+		responseEnv.SessionAttributes[n] = v
 	}
 
 	return responseEnv, nil

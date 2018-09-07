@@ -278,6 +278,27 @@ func TestAlexaOnSessionEndedCalled(t *testing.T) {
 	}
 }
 
+func TestAlexaSessionAttributesSet(t *testing.T) {
+	request := createRecipieRequest()
+	request.Request.Type = intentRequestName
+
+	handler := &emptyRequestHandler{}
+	handler.OnIntentSetsSessionAttr = true
+	alexa := getAlexaWithHandler(handler)
+	ctx := context.Background()
+	resp, err := alexa.ProcessRequest(ctx, request)
+	if err != nil {
+		t.Error("Error processing request. " + err.Error())
+	}
+	if !handler.OnIntentCalled {
+		t.Error("OnIntent was not called.")
+	}
+	if resp.SessionAttributes["myNewAttr"] != "Set123" {
+		t.Error("Session Attribute myNewAttr should be Set123 in ResponseEnvelope but was", resp.SessionAttributes["myNewAttr"])
+	}
+
+}
+
 func TestAlexaSimpleTextResponse(t *testing.T) {
 	request := createRecipieRequest()
 
@@ -466,6 +487,7 @@ type emptyRequestHandler struct {
 	OnLaunchThrowsErr       bool
 	OnIntentCalled          bool
 	OnIntentThrowsErr       bool
+	OnIntentSetsSessionAttr bool
 	OnSessionEndedCalled    bool
 	OnSessionEndedThrowsErr bool
 }
@@ -486,8 +508,11 @@ func (h *emptyRequestHandler) OnLaunch(context.Context, *Request, *Session, *Res
 	return nil
 }
 
-func (h *emptyRequestHandler) OnIntent(context.Context, *Request, *Session, *Response) error {
+func (h *emptyRequestHandler) OnIntent(c context.Context, req *Request, s *Session, res *Response) error {
 	h.OnIntentCalled = true
+	if h.OnIntentSetsSessionAttr {
+		s.Attributes.String["myNewAttr"] = "Set123"
+	}
 	if h.OnIntentThrowsErr {
 		return errors.New("Error in OnIntent")
 	}

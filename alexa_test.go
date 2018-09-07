@@ -492,7 +492,7 @@ type emptyRequestHandler struct {
 	OnSessionEndedThrowsErr bool
 }
 
-func (h *emptyRequestHandler) OnSessionStarted(context.Context, *Request, *Session, *Response) error {
+func (h *emptyRequestHandler) OnSessionStarted(context.Context, *Request, *Session, *Context, *Response) error {
 	h.OnSessionStartedCalled = true
 	if h.OnSessionStartThrowsErr {
 		return errors.New("Error in OnSessionStarted")
@@ -500,7 +500,7 @@ func (h *emptyRequestHandler) OnSessionStarted(context.Context, *Request, *Sessi
 	return nil
 }
 
-func (h *emptyRequestHandler) OnLaunch(context.Context, *Request, *Session, *Response) error {
+func (h *emptyRequestHandler) OnLaunch(context.Context, *Request, *Session, *Context, *Response) error {
 	h.OnLaunchCalled = true
 	if h.OnLaunchThrowsErr {
 		return errors.New("Error in OnLaunch")
@@ -508,7 +508,7 @@ func (h *emptyRequestHandler) OnLaunch(context.Context, *Request, *Session, *Res
 	return nil
 }
 
-func (h *emptyRequestHandler) OnIntent(c context.Context, req *Request, s *Session, res *Response) error {
+func (h *emptyRequestHandler) OnIntent(c context.Context, req *Request, s *Session, aContext *Context, res *Response) error {
 	h.OnIntentCalled = true
 	if h.OnIntentSetsSessionAttr {
 		s.Attributes.String["myNewAttr"] = "Set123"
@@ -519,7 +519,7 @@ func (h *emptyRequestHandler) OnIntent(c context.Context, req *Request, s *Sessi
 	return nil
 }
 
-func (h *emptyRequestHandler) OnSessionEnded(context.Context, *Request, *Session, *Response) error {
+func (h *emptyRequestHandler) OnSessionEnded(context.Context, *Request, *Session, *Context, *Response) error {
 	h.OnSessionEndedCalled = true
 	if h.OnSessionEndedThrowsErr {
 		return errors.New("Error in OnSessionEnded")
@@ -530,15 +530,15 @@ func (h *emptyRequestHandler) OnSessionEnded(context.Context, *Request, *Session
 type simpleResponseHandler struct {
 }
 
-func (h *simpleResponseHandler) OnSessionStarted(context.Context, *Request, *Session, *Response) error {
+func (h *simpleResponseHandler) OnSessionStarted(context.Context, *Request, *Session, *Context, *Response) error {
 	return nil
 }
 
-func (h *simpleResponseHandler) OnLaunch(context.Context, *Request, *Session, *Response) error {
+func (h *simpleResponseHandler) OnLaunch(context.Context, *Request, *Session, *Context, *Response) error {
 	return nil
 }
 
-func (h *simpleResponseHandler) OnIntent(context context.Context, request *Request, session *Session, response *Response) error {
+func (h *simpleResponseHandler) OnIntent(context context.Context, request *Request, session *Session, aContext *Context, response *Response) error {
 
 	response.SetOutputText("Response Text")
 	response.SetRepromptText("Reprompt Text")
@@ -546,22 +546,22 @@ func (h *simpleResponseHandler) OnIntent(context context.Context, request *Reque
 	return nil
 }
 
-func (h *simpleResponseHandler) OnSessionEnded(context.Context, *Request, *Session, *Response) error {
+func (h *simpleResponseHandler) OnSessionEnded(context.Context, *Request, *Session, *Context, *Response) error {
 	return nil
 }
 
 type simpleSSMLResponseHandler struct {
 }
 
-func (h *simpleSSMLResponseHandler) OnSessionStarted(context.Context, *Request, *Session, *Response) error {
+func (h *simpleSSMLResponseHandler) OnSessionStarted(context.Context, *Request, *Session, *Context, *Response) error {
 	return nil
 }
 
-func (h *simpleSSMLResponseHandler) OnLaunch(context.Context, *Request, *Session, *Response) error {
+func (h *simpleSSMLResponseHandler) OnLaunch(context.Context, *Request, *Session, *Context, *Response) error {
 	return nil
 }
 
-func (h *simpleSSMLResponseHandler) OnIntent(context context.Context, request *Request, session *Session, response *Response) error {
+func (h *simpleSSMLResponseHandler) OnIntent(context context.Context, request *Request, session *Session, aContext *Context, response *Response) error {
 
 	response.SetOutputSSML("<speak>This output speech uses SSML.</speak>")
 	response.SetRepromptSSML("<speak>This Reprompt speech uses SSML.</speak>")
@@ -569,7 +569,7 @@ func (h *simpleSSMLResponseHandler) OnIntent(context context.Context, request *R
 	return nil
 }
 
-func (h *simpleSSMLResponseHandler) OnSessionEnded(context.Context, *Request, *Session, *Response) error {
+func (h *simpleSSMLResponseHandler) OnSessionEnded(context.Context, *Request, *Session, *Context, *Response) error {
 	return nil
 }
 
@@ -577,15 +577,15 @@ type simpleCardResponseHandler struct {
 	Type string
 }
 
-func (h *simpleCardResponseHandler) OnSessionStarted(context.Context, *Request, *Session, *Response) error {
+func (h *simpleCardResponseHandler) OnSessionStarted(context.Context, *Request, *Session, *Context, *Response) error {
 	return nil
 }
 
-func (h *simpleCardResponseHandler) OnLaunch(context.Context, *Request, *Session, *Response) error {
+func (h *simpleCardResponseHandler) OnLaunch(context.Context, *Request, *Session, *Context, *Response) error {
 	return nil
 }
 
-func (h *simpleCardResponseHandler) OnIntent(context context.Context, request *Request, session *Session, response *Response) error {
+func (h *simpleCardResponseHandler) OnIntent(context context.Context, request *Request, session *Session, aContext *Context, response *Response) error {
 
 	switch h.Type {
 	case "Simple":
@@ -601,7 +601,7 @@ func (h *simpleCardResponseHandler) OnIntent(context context.Context, request *R
 	return nil
 }
 
-func (h *simpleCardResponseHandler) OnSessionEnded(context.Context, *Request, *Session, *Response) error {
+func (h *simpleCardResponseHandler) OnSessionEnded(context.Context, *Request, *Session, *Context, *Response) error {
 	return nil
 }
 
@@ -609,22 +609,22 @@ type simpleAudioPlayerResponseHandler struct {
 	Type string
 }
 
-func (h *simpleAudioPlayerResponseHandler) OnSessionStarted(context.Context, *Request, *Session, *Response) error {
+func (h *simpleAudioPlayerResponseHandler) OnSessionStarted(context.Context, *Request, *Session, *Context, *Response) error {
 	return nil
 }
 
-func (h *simpleAudioPlayerResponseHandler) OnLaunch(context.Context, *Request, *Session, *Response) error {
+func (h *simpleAudioPlayerResponseHandler) OnLaunch(context.Context, *Request, *Session, *Context, *Response) error {
 	return nil
 }
 
-func (h *simpleAudioPlayerResponseHandler) OnIntent(context context.Context, request *Request, session *Session, response *Response) error {
+func (h *simpleAudioPlayerResponseHandler) OnIntent(context context.Context, request *Request, session *Session, aContext *Context, response *Response) error {
 
 	response.AddAudioPlayer("AudioPlayer.Play", "REPLACE_ALL", "track2-long-audio", "https://my-audio-hosting-site.com/audio/sample-song-2.mp3", 100)
 
 	return nil
 }
 
-func (h *simpleAudioPlayerResponseHandler) OnSessionEnded(context.Context, *Request, *Session, *Response) error {
+func (h *simpleAudioPlayerResponseHandler) OnSessionEnded(context.Context, *Request, *Session, *Context, *Response) error {
 	return nil
 }
 
@@ -632,15 +632,15 @@ type simpleDialogDirectiveResponseHandler struct {
 	Type string
 }
 
-func (h *simpleDialogDirectiveResponseHandler) OnSessionStarted(context.Context, *Request, *Session, *Response) error {
+func (h *simpleDialogDirectiveResponseHandler) OnSessionStarted(context.Context, *Request, *Session, *Context, *Response) error {
 	return nil
 }
 
-func (h *simpleDialogDirectiveResponseHandler) OnLaunch(context.Context, *Request, *Session, *Response) error {
+func (h *simpleDialogDirectiveResponseHandler) OnLaunch(context.Context, *Request, *Session, *Context, *Response) error {
 	return nil
 }
 
-func (h *simpleDialogDirectiveResponseHandler) OnIntent(context context.Context, request *Request, session *Session, response *Response) error {
+func (h *simpleDialogDirectiveResponseHandler) OnIntent(context context.Context, request *Request, session *Session, aContext *Context, response *Response) error {
 
 	switch h.Type {
 	case "Simple":
@@ -663,6 +663,6 @@ func (h *simpleDialogDirectiveResponseHandler) OnIntent(context context.Context,
 	return nil
 }
 
-func (h *simpleDialogDirectiveResponseHandler) OnSessionEnded(context.Context, *Request, *Session, *Response) error {
+func (h *simpleDialogDirectiveResponseHandler) OnSessionEnded(context.Context, *Request, *Session, *Context, *Response) error {
 	return nil
 }

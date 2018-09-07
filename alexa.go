@@ -17,6 +17,10 @@ const sessionEndedRequestName = "SessionEndedRequest"
 
 var timestampTolerance = 150
 
+// ErrRequestEnvelopeNil reports that the request envelope was nil
+// there might be edge case which causes panic if for whatever reason this object is empty
+var ErrRequestEnvelopeNil = errors.New("request envelope was nil")
+
 // Alexa defines the primary interface to use to create an Alexa request handler.
 type Alexa struct {
 	ApplicationID       string
@@ -28,10 +32,10 @@ type Alexa struct {
 // RequestHandler defines the interface that must be implemented to handle
 // Alexa Requests
 type RequestHandler interface {
-	OnSessionStarted(context.Context, *Request, *Session, *Response) error
-	OnLaunch(context.Context, *Request, *Session, *Response) error
-	OnIntent(context.Context, *Request, *Session, *Response) error
-	OnSessionEnded(context.Context, *Request, *Session, *Response) error
+	OnSessionStarted(context.Context, *Request, *Session, *Context, *Response) error
+	OnLaunch(context.Context, *Request, *Session, *Context, *Response) error
+	OnIntent(context.Context, *Request, *Session, *Context, *Response) error
+	OnSessionEnded(context.Context, *Request, *Session, *Context, *Response) error
 }
 
 // RequestEnvelope contains the data passed from Alexa to the request handler.
@@ -39,10 +43,10 @@ type RequestEnvelope struct {
 	Version string   `json:"version"`
 	Session *Session `json:"session"`
 	Request *Request `json:"request"`
-	// TODO Add Request Context
+	Context *Context `json:"context"`
 }
 
-// Session containes the session data from the Alexa request.
+// Session contains the session data from the Alexa request.
 type Session struct {
 	New        bool   `json:"new"`
 	SessionID  string `json:"sessionId"`
@@ -56,6 +60,37 @@ type Session struct {
 	Application struct {
 		ApplicationID string `json:"applicationId"`
 	} `json:"application"`
+}
+
+// Context contains the context data from the Alexa Request.
+type Context struct {
+	AudioPlayer struct {
+		PlayerActivity string `json:"playerActivity"`
+	} `json:"AudioPlayer"`
+	Display struct {
+		Token string `json:"token"`
+	} `json:"Display"`
+	System struct {
+		Application struct {
+			ApplicationID string `json:"applicationId"`
+		} `json:"application"`
+		User struct {
+			UserID string `json:"userId"`
+		} `json:"user"`
+		Device struct {
+			DeviceID            string `json:"deviceId"`
+			SupportedInterfaces struct {
+				AudioPlayer struct {
+				} `json:"AudioPlayer"`
+				Display struct {
+					TemplateVersion string `json:"templateVersion"`
+					MarkupVersion   string `json:"markupVersion"`
+				} `json:"Display"`
+			} `json:"supportedInterfaces"`
+		} `json:"device"`
+		APIEndpoint    string `json:"apiEndpoint"`
+		APIAccessToken string `json:"apiAccessToken"`
+	} `json:"System"`
 }
 
 // Request contines the data in the request within the main request.
@@ -155,7 +190,10 @@ type DialogDirective struct {
 }
 
 // ProcessRequest handles a request passed from Alexa
-func (alexa *Alexa) ProcessRequest(context context.Context, requestEnv *RequestEnvelope) (*ResponseEnvelope, error) {
+func (alexa *Alexa) ProcessRequest(ctx context.Context, requestEnv *RequestEnvelope) (*ResponseEnvelope, error) {
+	if requestEnv == nil {
+		return nil, ErrRequestEnvelopeNil
+	}
 
 	if !alexa.IgnoreApplicationID {
 		err := alexa.verifyApplicationID(requestEnv)
@@ -177,6 +215,7 @@ func (alexa *Alexa) ProcessRequest(context context.Context, requestEnv *RequestE
 	if session.Attributes.String == nil {
 		session.Attributes.String = make(map[string]interface{})
 	}
+	context := requestEnv.Context
 
 	responseEnv := &ResponseEnvelope{}
 	responseEnv.Version = sdkVersion
@@ -187,7 +226,7 @@ func (alexa *Alexa) ProcessRequest(context context.Context, requestEnv *RequestE
 
 	// If it is a new session, invoke onSessionStarted
 	if session.New {
-		err := alexa.RequestHandler.OnSessionStarted(context, request, session, response)
+		err := alexa.RequestHandler.OnSessionStarted(ctx, request, session, context, response)
 		if err != nil {
 			log.Println("Error handling OnSessionStarted.", err.Error())
 			return nil, err
@@ -196,19 +235,19 @@ func (alexa *Alexa) ProcessRequest(context context.Context, requestEnv *RequestE
 
 	switch requestEnv.Request.Type {
 	case launchRequestName:
-		err := alexa.RequestHandler.OnLaunch(context, request, session, response)
+		err := alexa.RequestHandler.OnLaunch(ctx, request, session, context, response)
 		if err != nil {
 			log.Println("Error handling OnLaunch.", err.Error())
 			return nil, err
 		}
 	case intentRequestName:
-		err := alexa.RequestHandler.OnIntent(context, request, session, response)
+		err := alexa.RequestHandler.OnIntent(ctx, request, session, context, response)
 		if err != nil {
 			log.Println("Error handling OnIntent.", err.Error())
 			return nil, err
 		}
 	case sessionEndedRequestName:
-		err := alexa.RequestHandler.OnSessionEnded(context, request, session, response)
+		err := alexa.RequestHandler.OnSessionEnded(ctx, request, session, context, response)
 		if err != nil {
 			log.Println("Error handling OnSessionEnded.", err.Error())
 			return nil, err
@@ -303,6 +342,10 @@ func (r *Response) AddDialogDirective(dialogType, slotToElicit, slotToConfirm st
 // verifyApplicationId verifies that the ApplicationID sent in the request
 // matches the one configured for this skill.
 func (alexa *Alexa) verifyApplicationID(request *RequestEnvelope) error {
+	if request == nil {
+		return ErrRequestEnvelopeNil
+	}
+
 	appID := alexa.ApplicationID
 	requestAppID := request.Session.Application.ApplicationID
 	if appID == "" {
@@ -321,6 +364,9 @@ func (alexa *Alexa) verifyApplicationID(request *RequestEnvelope) error {
 // verifyTimestamp compares the request timestamp to the current timestamp
 // and returns an error if they are too far apart.
 func (alexa *Alexa) verifyTimestamp(request *RequestEnvelope) error {
+	if request == nil {
+		return ErrRequestEnvelopeNil
+	}
 
 	timestamp, err := time.Parse(time.RFC3339, request.Request.Timestamp)
 	if err != nil {

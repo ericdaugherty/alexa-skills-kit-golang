@@ -116,7 +116,19 @@ type IntentSlot struct {
 	Name               string `json:"name"`
 	ConfirmationStatus string `json:"confirmationStatus,omitempty"`
 	Value              string `json:"value"`
-	ID                 string `json:"id,omitempty"`
+	Resolutions  Resolutions `json:"resolutions"`
+}
+
+// Resolutions contain the (optional) ID of a slot
+type Resolutions struct {
+	ResolutionPerAuthority []struct{
+		Values []struct{
+			Value struct{
+				Name string `json:"name"`
+				Id   string `json:"id"`
+			} `json:"value"`
+		} `json:"values"`
+	} `json:"resolutionsPerAuthority"`
 }
 
 // ResponseEnvelope contains the Response and additional attributes.

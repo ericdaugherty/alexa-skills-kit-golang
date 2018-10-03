@@ -113,10 +113,26 @@ type Intent struct {
 
 // IntentSlot contains the data for one Slot
 type IntentSlot struct {
-	Name               string `json:"name"`
-	ConfirmationStatus string `json:"confirmationStatus,omitempty"`
-	Value              string `json:"value"`
-	ID                 string `json:"id,omitempty"`
+	Name               string       `json:"name"`
+	ConfirmationStatus string       `json:"confirmationStatus,omitempty"`
+	Value              string       `json:"value"`
+	Resolutions        *Resolutions `json:"resolutions,omitempty"`
+}
+
+// Resolutions contain the (optional) ID of a slot
+type Resolutions struct {
+	ResolutionsPerAuthority []struct {
+		Authority string `json:"authority"`
+		Status    struct {
+			Code string `json:"code"`
+		} `json:"status"`
+		Values []struct {
+			Value struct {
+				Name string `json:"name"`
+				ID   string `json:"id"`
+			} `json:"value"`
+		} `json:"values"`
+	} `json:"resolutionsPerAuthority"`
 }
 
 // ResponseEnvelope contains the Response and additional attributes.
@@ -370,13 +386,13 @@ func (alexa *Alexa) verifyTimestamp(request *RequestEnvelope) error {
 
 	timestamp, err := time.Parse(time.RFC3339, request.Request.Timestamp)
 	if err != nil {
-		return errors.New("Unable to parse request timestamp.  Err: " + err.Error())
+		return errors.New("unable to parse request timestamp.  Err: " + err.Error())
 	}
 	now := time.Now()
 	delta := now.Sub(timestamp)
 	deltaSecsAbs := math.Abs(delta.Seconds())
 	if deltaSecsAbs > float64(timestampTolerance) {
-		return errors.New("Invalid Timestamp. The request timestamp " + timestamp.String() + " was off the current time " + now.String() + " by more than " + strconv.FormatInt(int64(timestampTolerance), 10) + " seconds.")
+		return errors.New("invalid Timestamp. The request timestamp " + timestamp.String() + " was off the current time " + now.String() + " by more than " + strconv.FormatInt(int64(timestampTolerance), 10) + " seconds.")
 	}
 
 	return nil

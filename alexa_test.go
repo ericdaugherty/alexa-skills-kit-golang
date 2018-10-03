@@ -11,56 +11,71 @@ import (
 const applicationID = "amzn1.ask.skill.ABC123"
 
 const recipeIntentString = `{
-  "session": {
-    "new": false,
-    "sessionId": "amzn1.echo-api.session.[unique-value-here]",
-    "attributes": {},
-    "user": {
-      "userId": "amzn1.ask.account.[unique-value-here]"
-    },
-    "application": {
-      "applicationId": "amzn1.ask.skill.ABC123"
-    }
-  },
-  "version": "1.0",
-  "request": {
-    "locale": "en-US",
-    "timestamp": "2016-10-27T21:06:28Z",
-    "type": "IntentRequest",
-    "requestId": "amzn1.echo-api.request.xyz789",
-    "intent": {
-      "slots": {
-        "Item": {
-          "name": "Item",
-          "value": "snowball"
-        }
-      },
-      "name": "RecipeIntent"
-    }
-  },
-  "context": {
-    "AudioPlayer": {
-      "playerActivity": "IDLE"
-    },
-    "System": {
-      "device": {
-        "supportedInterfaces": {
-          "AudioPlayer": {}
-        }
-      },
-      "application": {
-        "applicationId": "amzn1.ask.skill.[unique-value-here]"
-      },
-      "user": {
-        "userId": "amzn1.ask.account.[unique-value-here]"
-      }
-    }
-  }
+	"session": {
+		"new": false,
+		"sessionId": "amzn1.echo-api.session.[unique-value-here]",
+		"attributes": {},
+		"user": {
+			"userId": "amzn1.ask.account.[unique-value-here]"
+		},
+		"application": {
+			"applicationId": "amzn1.ask.skill.ABC123"
+		}
+	},
+	"version": "1.0",
+	"request": {
+		"locale": "en-US",
+		"timestamp": "2016-10-27T21:06:28Z",
+		"type": "IntentRequest",
+		"requestId": "amzn1.echo-api.request.xyz789",
+		"intent": {
+			"name": "RecipeIntent",
+			"slots": {
+				"Item": {
+					"name": "Item",
+					"value": "snowball",
+					"confirmationStatus": "NONE",
+					"resolutions": {
+						"resolutionsPerAuthority": [{
+							"authority": "amzn1.er-authority.echo-sdk.amzn1.ask.skill.4711.Topic",
+							"status": {
+								"code": "ER_SUCCESS_MATCH"
+							},
+							"values": [{
+								"value": {
+									"name": "snowball",
+									"id": "5ad4bf3d7dd9e2567968d8a239dce2d3"
+								}
+							}]
+						}]
+					}
+				}
+			}
+		}
+	},
+	"context": {
+		"AudioPlayer": {
+			"playerActivity": "IDLE"
+		},
+		"System": {
+			"device": {
+				"supportedInterfaces": {
+					"AudioPlayer": {}
+				}
+			},
+			"application": {
+				"applicationId": "amzn1.ask.skill.[unique-value-here]"
+			},
+			"user": {
+				"userId": "amzn1.ask.account.[unique-value-here]"
+			}
+		}
+	}
 }`
 
 // TestAlexaJSON Verifies that the Alexa Struct parses an Alexa JSON String correctly.
 func TestAlexaJSON(t *testing.T) {
-	request := createRecipieRequest()
+	request := createRecipeRequest()
 
 	if request.Version != "1.0" {
 		t.Error("Expected Request Version to be 1.0 but was", request.Version)
@@ -74,10 +89,14 @@ func TestAlexaJSON(t *testing.T) {
 	if request.Request.RequestID != "amzn1.echo-api.request.xyz789" {
 		t.Error("Expected request.Request.RequestID to be amzn1.echo-api.request.xyz789 but was", request.Request.RequestID)
 	}
+	if request.Request.Intent.Slots["Item"].Resolutions.ResolutionsPerAuthority[0].Values[0].Value.Name != "snowball" {
+		t.Error("Expected request.Request.Intent.Slots['Item'].Resolutions.ResolutionsPerAuthority[0].Values[0].Value.Name to be snowball but was",
+			request.Request.Intent.Slots["Item"].Resolutions.ResolutionsPerAuthority[0].Values[0].Value.Name)
+	}
 }
 
 func TestAlexaAppIDValidation(t *testing.T) {
-	request := createRecipieRequest()
+	request := createRecipeRequest()
 
 	alexa := getAlexa()
 	ctx := context.Background()
@@ -107,7 +126,7 @@ func TestAlexaAppIDValidation(t *testing.T) {
 }
 
 func TestAlexaTimestampValidation(t *testing.T) {
-	request := createRecipieRequest()
+	request := createRecipeRequest()
 
 	alexa := getAlexa()
 	duration, _ := time.ParseDuration("-145s")
@@ -159,7 +178,7 @@ func TestAlexaTimestampValidation(t *testing.T) {
 }
 
 func TestAlexaOnSessionStartedCalled(t *testing.T) {
-	request := createRecipieRequest()
+	request := createRecipeRequest()
 
 	handler := &emptyRequestHandler{}
 	alexa := getAlexaWithHandler(handler)
@@ -197,7 +216,7 @@ func TestAlexaOnSessionStartedCalled(t *testing.T) {
 }
 
 func TestAlexaOnLaunchCalled(t *testing.T) {
-	request := createRecipieRequest()
+	request := createRecipeRequest()
 	request.Request.Type = launchRequestName
 
 	handler := &emptyRequestHandler{}
@@ -224,7 +243,7 @@ func TestAlexaOnLaunchCalled(t *testing.T) {
 }
 
 func TestAlexaOnIntentCalled(t *testing.T) {
-	request := createRecipieRequest()
+	request := createRecipeRequest()
 	request.Request.Type = intentRequestName
 
 	handler := &emptyRequestHandler{}
@@ -251,7 +270,7 @@ func TestAlexaOnIntentCalled(t *testing.T) {
 }
 
 func TestAlexaOnSessionEndedCalled(t *testing.T) {
-	request := createRecipieRequest()
+	request := createRecipeRequest()
 	request.Request.Type = sessionEndedRequestName
 
 	handler := &emptyRequestHandler{}
@@ -279,7 +298,7 @@ func TestAlexaOnSessionEndedCalled(t *testing.T) {
 }
 
 func TestAlexaSessionAttributesSet(t *testing.T) {
-	request := createRecipieRequest()
+	request := createRecipeRequest()
 	request.Request.Type = intentRequestName
 
 	handler := &emptyRequestHandler{}
@@ -300,7 +319,7 @@ func TestAlexaSessionAttributesSet(t *testing.T) {
 }
 
 func TestAlexaSimpleTextResponse(t *testing.T) {
-	request := createRecipieRequest()
+	request := createRecipeRequest()
 
 	alexa := getAlexaWithHandler(&simpleResponseHandler{})
 	ctx := context.Background()
@@ -325,7 +344,7 @@ func TestAlexaSimpleTextResponse(t *testing.T) {
 }
 
 func TestSimpleSSMLResponse(t *testing.T) {
-	request := createRecipieRequest()
+	request := createRecipeRequest()
 
 	alexa := getAlexaWithHandler(&simpleSSMLResponseHandler{})
 	ctx := context.Background()
@@ -350,7 +369,7 @@ func TestSimpleSSMLResponse(t *testing.T) {
 }
 
 func TestCards(t *testing.T) {
-	request := createRecipieRequest()
+	request := createRecipeRequest()
 
 	cardHandler := &simpleCardResponseHandler{Type: "Simple"}
 	alexa := getAlexaWithHandler(cardHandler)
@@ -390,7 +409,7 @@ func TestCards(t *testing.T) {
 }
 
 func TestAudioPlayer(t *testing.T) {
-	request := createRecipieRequest()
+	request := createRecipeRequest()
 
 	audioPlayerHandler := &simpleAudioPlayerResponseHandler{Type: "Simple"}
 	alexa := getAlexaWithHandler(audioPlayerHandler)
@@ -415,7 +434,7 @@ func TestAudioPlayer(t *testing.T) {
 }
 
 func TestSimpleDialogDirective(t *testing.T) {
-	request := createRecipieRequest()
+	request := createRecipeRequest()
 
 	simpleDialogDirectiveResponseHandler := &simpleDialogDirectiveResponseHandler{Type: "Simple"}
 	alexa := getAlexaWithHandler(simpleDialogDirectiveResponseHandler)
@@ -440,7 +459,7 @@ func TestSimpleDialogDirective(t *testing.T) {
 }
 
 func TestNoIntentDialogDirective(t *testing.T) {
-	request := createRecipieRequest()
+	request := createRecipeRequest()
 
 	simpleDialogDirectiveResponseHandler := &simpleDialogDirectiveResponseHandler{Type: "NoIntent"}
 	alexa := getAlexaWithHandler(simpleDialogDirectiveResponseHandler)
@@ -472,7 +491,7 @@ func getAlexaWithHandler(handler RequestHandler) *Alexa {
 	return &Alexa{ApplicationID: applicationID, RequestHandler: handler}
 }
 
-func createRecipieRequest() *RequestEnvelope {
+func createRecipeRequest() *RequestEnvelope {
 	var request RequestEnvelope
 	var jsonBlob = []byte(recipeIntentString)
 	json.Unmarshal(jsonBlob, &request)
@@ -495,7 +514,7 @@ type emptyRequestHandler struct {
 func (h *emptyRequestHandler) OnSessionStarted(context.Context, *Request, *Session, *Context, *Response) error {
 	h.OnSessionStartedCalled = true
 	if h.OnSessionStartThrowsErr {
-		return errors.New("Error in OnSessionStarted")
+		return errors.New("error in OnSessionStarted")
 	}
 	return nil
 }
@@ -503,7 +522,7 @@ func (h *emptyRequestHandler) OnSessionStarted(context.Context, *Request, *Sessi
 func (h *emptyRequestHandler) OnLaunch(context.Context, *Request, *Session, *Context, *Response) error {
 	h.OnLaunchCalled = true
 	if h.OnLaunchThrowsErr {
-		return errors.New("Error in OnLaunch")
+		return errors.New("error in OnLaunch")
 	}
 	return nil
 }
@@ -514,7 +533,7 @@ func (h *emptyRequestHandler) OnIntent(c context.Context, req *Request, s *Sessi
 		s.Attributes.String["myNewAttr"] = "Set123"
 	}
 	if h.OnIntentThrowsErr {
-		return errors.New("Error in OnIntent")
+		return errors.New("error in OnIntent")
 	}
 	return nil
 }
@@ -522,7 +541,7 @@ func (h *emptyRequestHandler) OnIntent(c context.Context, req *Request, s *Sessi
 func (h *emptyRequestHandler) OnSessionEnded(context.Context, *Request, *Session, *Context, *Response) error {
 	h.OnSessionEndedCalled = true
 	if h.OnSessionEndedThrowsErr {
-		return errors.New("Error in OnSessionEnded")
+		return errors.New("error in OnSessionEnded")
 	}
 	return nil
 }

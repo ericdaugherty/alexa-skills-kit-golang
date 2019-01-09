@@ -64,33 +64,32 @@ type Session struct {
 
 // Context contains the context data from the Alexa Request.
 type Context struct {
-	AudioPlayer struct {
-		PlayerActivity string `json:"playerActivity"`
-	} `json:"AudioPlayer"`
-	Display struct {
-		Token string `json:"token"`
-	} `json:"Display"`
 	System struct {
-		Application struct {
-			ApplicationID string `json:"applicationId"`
-		} `json:"application"`
-		User struct {
-			UserID string `json:"userId"`
-		} `json:"user"`
 		Device struct {
 			DeviceID            string `json:"deviceId"`
 			SupportedInterfaces struct {
 				AudioPlayer struct {
 				} `json:"AudioPlayer"`
-				Display struct {
-					TemplateVersion string `json:"templateVersion"`
-					MarkupVersion   string `json:"markupVersion"`
-				} `json:"Display"`
 			} `json:"supportedInterfaces"`
 		} `json:"device"`
+		Application struct {
+			ApplicationID string `json:"applicationId"`
+		} `json:"application"`
+		User struct {
+			UserID      string `json:"userId"`
+			AccessToken string `json:"accessToken"`
+			Permissions struct {
+				ConsentToken string `json:"consentToken"`
+			} `json:"permissions"`
+		} `json:"user"`
 		APIEndpoint    string `json:"apiEndpoint"`
 		APIAccessToken string `json:"apiAccessToken"`
 	} `json:"System"`
+	AudioPlayer struct {
+		PlayerActivity       string `json:"playerActivity"`
+		Token                string `json:"token"`
+		OffsetInMilliseconds int    `json:"offsetInMilliseconds"`
+	} `json:"AudioPlayer"`
 }
 
 // Request contains the data in the request within the main request.

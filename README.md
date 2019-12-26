@@ -3,7 +3,8 @@
 alexa-skills-kit-golang is a lightweight port of the Amazon [alexa-skills-kit-java](https://github.com/amzn/alexa-skills-kit-java)
 SDK and Samples.
 
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![License](https://img.shields.io/badge/License-Apache%202.0-lightgrey.svg)](https://opensource.org/licenses/Apache-2.0)
+[![godoc](https://img.shields.io/badge/godoc-reference-blue.svg)](https://godoc.org/github.com/ericdaugherty/alexa-skills-kit-golang)
 
 ## Usage
 

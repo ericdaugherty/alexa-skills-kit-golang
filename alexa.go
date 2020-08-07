@@ -112,10 +112,24 @@ type Intent struct {
 
 // IntentSlot contains the data for one Slot
 type IntentSlot struct {
-	Name               string       `json:"name"`
-	ConfirmationStatus string       `json:"confirmationStatus,omitempty"`
-	Value              string       `json:"value"`
-	Resolutions        *Resolutions `json:"resolutions,omitempty"`
+	Name               string `json:"name"`
+	ConfirmationStatus string `json:"confirmationStatus,omitempty"`
+	SlotValue   *IntentSlotValue `json:"slotValue"`
+
+	// Deprecated: use SlotValue.Value instead
+	Value string `json:"value"`
+	// Deprecated: use SlotValue.Resolutions instead
+	Resolutions *Resolutions     `json:"resolutions,omitempty"`
+}
+
+// IntentSlotValue contains the value or values of a slot.
+// When Type == "Simple", Value and Resolutions are populated.
+// When Type == "List", Values is populated.
+type IntentSlotValue struct {
+	Type string `json:"type"`
+	Values []*IntentSlotValue `json:"values"`
+	Value string `json:"value"`
+	Resolutions *Resolutions `json:"resolutions,omitempty"`
 }
 
 // Resolutions contain the (optional) ID of a slot

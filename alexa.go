@@ -116,6 +116,20 @@ type IntentSlot struct {
 	ConfirmationStatus string       `json:"confirmationStatus,omitempty"`
 	Value              string       `json:"value"`
 	Resolutions        *Resolutions `json:"resolutions,omitempty"`
+
+	// SlotValue is a BETA field and may be removed by Amazon without warning.
+	// See https://developer.amazon.com/en-US/docs/alexa/custom-skills/collect-multiple-values-in-a-slot.html.
+	SlotValue *IntentSlotValue `json:"slotValue,omitempty"`
+}
+
+// IntentSlotValue contains the value or values of a slot.
+// When Type == "Simple", Value and Resolutions are populated.
+// When Type == "List", Values is populated.
+type IntentSlotValue struct {
+	Type        string             `json:"type"`
+	Values      []*IntentSlotValue `json:"values"`
+	Value       string             `json:"value"`
+	Resolutions *Resolutions       `json:"resolutions,omitempty"`
 }
 
 // Resolutions contain the (optional) ID of a slot
